@@ -1,0 +1,130 @@
+{
+  "story": "Một hành trình đầy ám ảnh và kịch tính vào lòng Sơn Đoòng, nơi Tiến sĩ Lâm, một nhà địa chất tài năng nhưng mang trong mình nỗi đau quá khứ, đi tìm không chỉ vẻ đẹp siêu thực mà còn là sự thật về đội thám hiểm mất tích của người thầy anh. Đối mặt với những hiểm nguy khôn lường và giới hạn của chính bản thân, Lâm phải vượt qua bóng tối để hé lộ 'Thạch Sơn Tâm' – Trái tim ẩn giấu của hang động, nơi bí mật và định mệnh giao thoa.",
+  "mood": "căng thẳng, bí ẩn, bi tráng, hoành tráng, giải thoát",
+  "characters": [
+    {
+      "name": "Tiến sĩ Lâm",
+      "description": "Một nhà địa chất tài năng, từng bị gục ngã vì một thất bại cá nhân/chuyên môn. Anh bị ám ảnh bởi sự mất tích của người thầy và đội thám hiểm của ông 10 năm trước tại một khu vực chưa được khám phá gần Sơn Đoòng. Lâm mang theo một cuốn nhật ký cũ và la bàn của thầy, tin rằng anh có thể tìm thấy con đường đến 'Thạch Sơn Tâm' – một khoang hang động huyền thoại được nhắc đến trong ghi chú của thầy. Anh là người quyết đoán, ít nói nhưng cực kỳ kiên cường."
+    },
+    {
+      "name": "An Bằng",
+      "description": "Hướng dẫn viên địa phương, 30 tuổi, thực tế, kinh nghiệm và thận trọng. Ban đầu hoài nghi về mục tiêu của Lâm, nhưng dần bị thuyết phục bởi quyết tâm và những bằng chứng không thể chối cãi. Anh là chỗ dựa vững chắc về mặt thể lực và kinh nghiệm sinh tồn cho đoàn."
+    },
+    {
+      "name": "Hương",
+      "description": "Nhà làm phim tài liệu trẻ, nhiệt huyết và dũng cảm, 20 tuổi. Cô ghi lại toàn bộ hành trình, đại diện cho góc nhìn của khán giả, ban đầu choáng ngợp bởi vẻ đẹp, sau đó là sự căng thẳng và kinh ngạc trước những bí ẩn được hé lộ. Cô là người luôn đặt câu hỏi và tìm kiếm sự thật."
+    }
+  ],
+  "scenes": [
+    {
+      "prompt": "Sáng sớm mờ sương tại Vườn Quốc gia Phong Nha-Kẻ Bàng. Tiến sĩ Lâm với vẻ mặt khắc khổ, trầm tư nhìn vào cuốn nhật ký cũ đã sờn. An Bằng đang kiểm tra thiết bị với vẻ lo lắng, trong khi Hương ghi hình với ánh mắt đầy tò mò. Đoàn thám hiểm đến gần cửa hang Sơn Đoòng khổng lồ, trông như một vực thẳm đá đang há rộng. Không khí căng thẳng, xen lẫn quyết tâm.",
+      "video_prompt": "MỞ ĐẦU với CLOSE-UP cuốn nhật ký cũ trong tay Lâm, sau đó PAN UP lên gương mặt anh, ánh mắt đầy ám ảnh nhưng kiên định. DRONE SHOT từ trên cao, xuyên qua tán rừng già, CHASE CAM theo sau đoàn người nhỏ bé tiến về phía cửa hang. EXTREME WIDE SHOT thể hiện sự đồ sộ choáng ngợp của cửa hang. QUICK CUTS giữa các gương mặt quyết tâm (Lâm), lo lắng (Bằng) và tò mò (Hương) với những vách đá hùng vĩ. Ánh sáng mờ ảo của bình minh làm tăng thêm vẻ huyền bí.",
+      "narrator_text": "Mười năm. Một lời hứa không thành. Một bí ẩn chưa lời giải. Tiến sĩ Lâm không tìm",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Sáng sớm mờ sương tại Vườn Quốc gia Phong Nha-Kẻ Bàng. Tiến sĩ Lâm với vẻ mặt khắc khổ, trầm tư nhìn vào cuốn nhật ký cũ đã sờn. An Bằng đang kiểm tra thiết bị với vẻ lo lắng, trong khi Hương ghi hình với ánh mắt đầy tò mò. Đoàn thám hiểm đến gần cửa hang Sơn Đoòng khổng lồ, trông như một vực thẳm đá đang há rộng. Không khí căng thẳng, xen lẫn quyết tâm. (Tiếp nối)",
+      "video_prompt": "MỞ ĐẦU với CLOSE-UP cuốn nhật ký cũ trong tay Lâm, sau đó PAN UP lên gương mặt anh, ánh mắt đầy ám ảnh nhưng kiên định. DRONE SHOT từ trên cao, xuyên qua tán rừng già, CHASE CAM theo sau đoàn người nhỏ bé tiến về phía cửa hang. EXTREME WIDE SHOT thể hiện sự đồ sộ choáng ngợp của cửa hang. QUICK CUTS giữa các gương mặt quyết tâm (Lâm), lo lắng (Bằng) và tò mò (Hương) với những vách đá hùng vĩ. Ánh sáng mờ ảo của bình minh làm tăng thêm vẻ huyền bí.",
+      "narrator_text": "hang động. Anh tìm một linh hồn đã mất. Lời nguyền hay lời hứa? Sơn Đoòng sẽ trả lời.",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Bên trong lòng hang Sơn Đoòng, bóng tối sâu thẳm bao trùm. Đoàn thám hiểm đu dây xuống một vách đá dốc đứng, nguy hiểm (ước tính 80m). Dòng sông ngầm bên dưới chảy xiết, tạo nên tiếng vang vọng khắp không gian. Một tảng đá bất ngờ lở ra, suýt nữa làm An Bằng mất thăng bằng. Lâm phản ứng cực nhanh, giữ chặt dây và cứu Bằng. Hương ghi lại cảnh tượng với vẻ mặt kinh hãi.",
+      "video_prompt": "TRACKING SHOT từ FPV (Góc nhìn thứ nhất) của Lâm khi đu dây, cho thấy độ sâu và nguy hiểm. HANDHELD SHOT rung mạnh, tăng cảm giác hồi hộp. MEDIUM SHOT cận cảnh dòng sông ngầm cuồn cuộn chảy với SOUND DESIGN mạnh mẽ, chân thực. CLOSE-UP lên khuôn mặt căng thẳng của An Bằng khi đá lở, sau đó là phản ứng quyết đoán, nhanh nhẹn của Lâm. PAN SLOWLY qua hõm đá khổng lồ, để lộ khoảng không gian mênh mông nhưng đầy hiểm nguy phía dưới. CUTS nhanh giữa các gương mặt lo sợ và ánh đèn pin rọi vào bóng tối.",
+      "narrator_text": "Độ sâu không tưởng. Một thế giới khác biệt. Sơn Đoòng không dễ dàng khuất phục. Mỗi bước",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Bên trong lòng hang Sơn Đoòng, bóng tối sâu thẳm bao trùm. Đoàn thám hiểm đu dây xuống một vách đá dốc đứng, nguy hiểm (ước tính 80m). Dòng sông ngầm bên dưới chảy xiết, tạo nên tiếng vang vọng khắp không gian. Một tảng đá bất ngờ lở ra, suýt nữa làm An Bằng mất thăng bằng. Lâm phản ứng cực nhanh, giữ chặt dây và cứu Bằng. Hương ghi lại cảnh tượng với vẻ mặt kinh hãi. (Tiếp nối)",
+      "video_prompt": "TRACKING SHOT từ FPV (Góc nhìn thứ nhất) của Lâm khi đu dây, cho thấy độ sâu và nguy hiểm. HANDHELD SHOT rung mạnh, tăng cảm giác hồi hộp. MEDIUM SHOT cận cảnh dòng sông ngầm cuồn cuộn chảy với SOUND DESIGN mạnh mẽ, chân thực. CLOSE-UP lên khuôn mặt căng thẳng của An Bằng khi đá lở, sau đó là phản ứng quyết đoán, nhanh nhẹn của Lâm. PAN SLOWLY qua hõm đá khổng lồ, để lộ khoảng không gian mênh mông nhưng đầy hiểm nguy phía dưới. CUTS nhanh giữa các gương mặt lo sợ và ánh đèn pin rọi vào bóng tối.",
+      "narrator_text": "chân là một canh bạc sinh tử. Nhưng trong bóng tối, Lâm thấy ánh sáng của mục tiêu.",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Ánh sáng mặt trời xuyên qua hố sụt khổng lồ (doline) tạo nên 'Vườn Địa Đàng' lung linh. Bằng và Hương choáng ngợp trước vẻ đẹp siêu thực. Nhưng Lâm không dừng lại, anh tìm thấy một vết khắc mờ trên một tảng đá ẩn khuất, giống hệt ký hiệu trong nhật ký của thầy anh. Dấu vết này dẫn đến một lối đi hẹp, bị cây cối và đá che lấp, dường như chưa từng có ai đi qua trước đây.",
+      "video_prompt": "CRANE SHOT từ dưới 'khu vườn', nâng lên cao dần, tiết lộ ánh sáng kỳ diệu đổ xuống từ doline. WIDE SHOT toàn cảnh 'khu vườn' nhiệt đới trong hang, với CINEMATIC LIGHTING làm nổi bật màu xanh tươi tốt. GIMBAL SHOT nhẹ nhàng lướt qua nhũ đá khổng lồ. FOCUS PULL từ vẻ đẹp mê hoặc sang khuôn mặt tập trung của Lâm. CLOSE-UP bàn tay Lâm lần theo vết khắc trên đá, sau đó là MEDIUM SHOT của lối đi hẹp, tối tăm được hé lộ, gợi cảm giác bí ẩn và một lời mời gọi nguy hiểm.",
+      "narrator_text": "Vẻ đẹp huyễn hoặc giấu che sự thật. Nhưng dấu vết đã dẫn lối. Một",
+      "voice_gender": "Nữ",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Ánh sáng mặt trời xuyên qua hố sụt khổng lồ (doline) tạo nên 'Vườn Địa Đàng' lung linh. Bằng và Hương choáng ngợp trước vẻ đẹp siêu thực. Nhưng Lâm không dừng lại, anh tìm thấy một vết khắc mờ trên một tảng đá ẩn khuất, giống hệt ký hiệu trong nhật ký của thầy anh. Dấu vết này dẫn đến một lối đi hẹp, bị cây cối và đá che lấp, dường như chưa từng có ai đi qua trước đây. (Tiếp nối)",
+      "video_prompt": "CRANE SHOT từ dưới 'khu vườn', nâng lên cao dần, tiết lộ ánh sáng kỳ diệu đổ xuống từ doline. WIDE SHOT toàn cảnh 'khu vườn' nhiệt đới trong hang, với CINEMATIC LIGHTING làm nổi bật màu xanh tươi tốt. GIMBAL SHOT nhẹ nhàng lướt qua nhũ đá khổng lồ. FOCUS PULL từ vẻ đẹp mê hoặc sang khuôn mặt tập trung của Lâm. CLOSE-UP bàn tay Lâm lần theo vết khắc trên đá, sau đó là MEDIUM SHOT của lối đi hẹp, tối tăm được hé lộ, gợi cảm giác bí ẩn và một lời mời gọi nguy hiểm.",
+      "narrator_text": "lời thì thầm từ lòng đất. Con đường đến tận cùng bí ẩn đang mở ra.",
+      "voice_gender": "Nữ",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Bên trong lối đi bí mật, không gian trở nên cực kỳ chật hẹp và tối tăm, chỉ có ánh đèn pin rọi sáng. Đoàn thám hiểm phải bò, lách qua những khe đá sắc nhọn. Một đoạn đường đột nhiên sụp đổ một phần ngay phía sau họ, khiến không khí trở nên ngột ngạt và căng thẳng tột độ. An Bằng hoảng hốt, nhưng Lâm vẫn giữ bình tĩnh, anh dùng kiến thức địa chất để tìm đường đi an toàn, động viên Bằng và Hương tiếp tục. Tiếng thở dốc, tiếng đá lở vang vọng trong bóng tối.",
+      "video_prompt": "HANDHELD SHOT trong không gian cực hẹp, chỉ có ánh đèn pin của Lâm rọi về phía trước. LOW ANGLE SHOT tạo cảm giác bị đè nén. CLOSE-UP khuôn mặt căng thẳng, mồ hôi của Lâm khi anh dò đường. QUICK CUTS giữa gương mặt sợ hãi của An Bằng và Hương. SOUND DESIGN mạnh mẽ với tiếng thở dốc nặng nhọc, tiếng đá lở rào rào và sự im lặng đáng sợ sau đó. WIDE SHOT khi họ cuối cùng thoát ra khỏi đoạn hẹp, ánh sáng mờ ảo phía trước hé lộ một không gian rộng lớn nhưng vẫn chưa rõ hình thù.",
+      "narrator_text": "Lối đi hẹp dẫn vào lòng vô tận. Nơi ánh sáng không thể với tới. Nơi thời gian ngừng",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Bên trong lối đi bí mật, không gian trở nên cực kỳ chật hẹp và tối tăm, chỉ có ánh đèn pin rọi sáng. Đoàn thám hiểm phải bò, lách qua những khe đá sắc nhọn. Một đoạn đường đột nhiên sụp đổ một phần ngay phía sau họ, khiến không khí trở nên ngột ngạt và căng thẳng tột độ. An Bằng hoảng hốt, nhưng Lâm vẫn giữ bình tĩnh, anh dùng kiến thức địa chất để tìm đường đi an toàn, động viên Bằng và Hương tiếp tục. Tiếng thở dốc, tiếng đá lở vang vọng trong bóng tối. (Tiếp nối)",
+      "video_prompt": "HANDHELD SHOT trong không gian cực hẹp, chỉ có ánh đèn pin của Lâm rọi về phía trước. LOW ANGLE SHOT tạo cảm giác bị đè nén. CLOSE-UP khuôn mặt căng thẳng, mồ hôi của Lâm khi anh dò đường. QUICK CUTS giữa gương mặt sợ hãi của An Bằng và Hương. SOUND DESIGN mạnh mẽ với tiếng thở dốc nặng nhọc, tiếng đá lở rào rào và sự im lặng đáng sợ sau đó. WIDE SHOT khi họ cuối cùng thoát ra khỏi đoạn hẹp, ánh sáng mờ ảo phía trước hé lộ một không gian rộng lớn nhưng vẫn chưa rõ hình thù.",
+      "narrator_text": "trôi. 'Thạch Sơn Tâm' đang chờ đợi. Nhưng nó sẽ ban phước hay nguyền rủa những kẻ dám bước vào?",
+      "voice_gender": "Nam",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Sau cùng, đoàn thám hiểm bước vào 'Thạch Sơn Tâm' – một khoang hang động khổng lồ, chưa từng được biết đến, với những kiến tạo đá lấp lánh như tinh thể và hệ sinh thái bioluminescent phát sáng huyền ảo, tạo nên một 'dải ngân hà' dưới lòng đất. Ở trung tâm, họ tìm thấy chiếc ba lô cũ của người thầy của Lâm, bên trong có một lá thư và một bản đồ dang dở. Lâm đọc lá thư, ánh mắt vừa bi thương vừa thanh thản. Anh đã tìm thấy sự thật, và một thế giới mới. Ba người đứng giữa khoang, nhỏ bé trước vẻ đẹp vĩ đại, sự bí ẩn được giải đáp nhưng vẫn còn vô vàn điều để khám phá.",
+      "video_prompt": "SLOW REVEAL SHOT: Ánh đèn pin quét qua bóng tối, từ từ hé lộ một không gian choáng ngợp với những tinh thể phát sáng lung linh. CRANE SHOT từ từ nâng lên, bao quát toàn bộ vẻ đẹp siêu thực của 'Thạch Sơn Tâm' – một dải ngân hà dưới lòng đất, với dòng nước ngầm trong vắt phản chiếu ánh sáng. MEDIUM SHOT cận cảnh Lâm quỳ xuống bên chiếc ba lô cũ, đôi tay run rẩy mở lá thư. CLOSE-UP ánh mắt Lâm, vừa bi thương cho quá khứ, vừa thanh thản và kinh ngạc trước khám phá. CUỐI CÙNG, EPIC ESTABLISHING WIDE SHOT của ba nhân vật đứng giữa khoang, nhỏ bé nhưng hùng vĩ, trong ánh sáng xanh tím huyền ảo, một cảm giác vỡ òa của sự giải thoát và sự vĩ đại. ZOOM OUT chậm rãi, cho thấy toàn bộ sự bao la của 'Thạch Sơn Tâm'.",
+      "narrator_text": "Trong bóng tối vĩnh cửu, sự sống vươn mình, kỳ diệu hơn mọi tưởng tượng. Bí mật đã được hé lộ. Nỗi ám ảnh được giải thoát. Tiến sĩ Lâm đã tìm thấy",
+      "voice_gender": "Nữ",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    },
+    {
+      "prompt": "Sau cùng, đoàn thám hiểm bước vào 'Thạch Sơn Tâm' – một khoang hang động khổng lồ, chưa từng được biết đến, với những kiến tạo đá lấp lánh như tinh thể và hệ sinh thái bioluminescent phát sáng huyền ảo, tạo nên một 'dải ngân hà' dưới lòng đất. Ở trung tâm, họ tìm thấy chiếc ba lô cũ của người thầy của Lâm, bên trong có một lá thư và một bản đồ dang dở. Lâm đọc lá thư, ánh mắt vừa bi thương vừa thanh thản. Anh đã tìm thấy sự thật, và một thế giới mới. Ba người đứng giữa khoang, nhỏ bé trước vẻ đẹp vĩ đại, sự bí ẩn được giải đáp nhưng vẫn còn vô vàn điều để khám phá. (Tiếp nối)",
+      "video_prompt": "SLOW REVEAL SHOT: Ánh đèn pin quét qua bóng tối, từ từ hé lộ một không gian choáng ngợp với những tinh thể phát sáng lung linh. CRANE SHOT từ từ nâng lên, bao quát toàn bộ vẻ đẹp siêu thực của 'Thạch Sơn Tâm' – một dải ngân hà dưới lòng đất, với dòng nước ngầm trong vắt phản chiếu ánh sáng. MEDIUM SHOT cận cảnh Lâm quỳ xuống bên chiếc ba lô cũ, đôi tay run rẩy mở lá thư. CLOSE-UP ánh mắt Lâm, vừa bi thương cho quá khứ, vừa thanh thản và kinh ngạc trước khám phá. CUỐI CÙNG, EPIC ESTABLISHING WIDE SHOT của ba nhân vật đứng giữa khoang, nhỏ bé nhưng hùng vĩ, trong ánh sáng xanh tím huyền ảo, một cảm giác vỡ òa của sự giải thoát và sự vĩ đại. ZOOM OUT chậm rãi, cho thấy toàn bộ sự bao la của 'Thạch Sơn Tâm'.",
+      "narrator_text": "không chỉ lời giải. Mà là một thế giới. Một lời nhắc nhở rằng, vũ trụ vẫn còn vô vàn điều để khám phá. Sơn Đoòng. Nơi giới hạn được tái định nghĩa.",
+      "voice_gender": "Nữ",
+      "character_names": [
+        "Tiến sĩ Lâm",
+        "An Bằng",
+        "Hương"
+      ]
+    }
+  ]
+}
