@@ -530,10 +530,14 @@ flowkit-main/
 
 <div align="center">
 
-[![Facebook Group](https://img.shields.io/badge/Community-FlowKit_%26_Flowboard-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/groups/flowkit.flowboard.community)
+<br/>
+
+[![Join FlowKit & Flowboard on Facebook](https://img.shields.io/static/v1?label=Facebook+Group&message=FlowKit+%26+Flowboard&color=1877F2&style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/groups/flowkit.flowboard.community)
+
+<br/><br/>
 
 **[facebook.com/groups/flowkit.flowboard.community](https://www.facebook.com/groups/flowkit.flowboard.community)**
 
-Share generated videos &nbsp;·&nbsp; Ask for help &nbsp;·&nbsp; Request features &nbsp;·&nbsp; Report bugs
+Share generated videos · Ask for help · Request features · Report bugs
 
 </div>
