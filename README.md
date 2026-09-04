@@ -1,177 +1,216 @@
-<p align="center">
-  <img src="docs/images/flowkit_banner.svg" width="720" alt="FLOW KIT" />
-</p>
-
-<p align="center">
-  <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"/></a>
-  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?logo=python" alt="Python 3.10+"/>
-  <img src="https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs" alt="Next.js 15"/>
-  <img src="https://img.shields.io/badge/Chrome-MV3-4285F4?logo=googlechrome" alt="Chrome MV3"/>
-  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi" alt="FastAPI"/>
-  <img src="https://img.shields.io/badge/ffmpeg-required-007808" alt="ffmpeg"/>
-</p>
-
 # FLOW KIT
 
-He thong san xuat video AI tu dong hoan chinh, tu y tuong den video YouTube.
-Su dung **Google Flow API** thong qua Chrome extension lam cau noi xac thuc.
+<div align="center">
+
+**AI Video Production System — From Idea to YouTube, Fully Automated**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Chrome](https://img.shields.io/badge/Chrome_Extension-MV3-4285F4?logo=googlechrome&logoColor=white)](extension/)
+[![ffmpeg](https://img.shields.io/badge/ffmpeg-required-007808?logo=ffmpeg&logoColor=white)](https://ffmpeg.org)
+
+[Quick Start](#quick-start) . [Architecture](#architecture) . [Skills](#ai-skills) . [API](#api-reference) . [Community](#community)
+
+</div>
 
 ---
 
-## Tong quan kien truc
+## Overview
+
+FlowKit is a complete AI video production pipeline that automates everything from story generation to YouTube publishing, powered by **Google Flow API**, orchestrated through a local Python agent and Chrome extension bridge.
 
 `
-+----------------------+   WebSocket (9222)   +--------------------------+
-|  Python Agent        |<------------------->|  Chrome Extension         |
-|  FastAPI + SQLite    |                     |  MV3 Service Worker       |
-|  REST API :8100      |  -- commands -->    |  - Bat token ya29.*       |
-|  Queue worker        |  <-- results --     |  - Giai reCAPTCHA v2      |
-|  Post-process        |                     |  - Proxy Google Flow API  |
-+----------------------+                     +--------------------------+
-          |
-          v
-+----------------------+   HTTP (3000)        +--------------------------+
-|  factory/            |<------------------->|  flowkit-web              |
-|  Auto Pipeline       |                     |  Next.js 15 Dashboard     |
-|  stage_1_script.py   |                     |  Tram 1: Nhap y tuong     |
-|  stage_2_images.py   |                     |  Tram 2: Duyet kich ban   |
-|  stage_3_videos.py   |                     |  Tram 3: Render anh/video |
-|  stage_4_concat.py   |                     |  Tram 4: Hoan thanh       |
-|  stage_5_upload.py   |                     |  Tram 5: YouTube upload   |
-+----------------------+                     +--------------------------+
+Story Idea  ->  Script (AI)  ->  Reference Images  ->  Scene Images
+    ->  AI Videos (8s clips)  ->  Concat + BGM  ->  YouTube Upload
 `
 
 ---
 
-## Thanh phan du an
+## Architecture
 
-### 1. Chrome Extension (extension/)
-- Bat token Google Flow (ya29.*) tu isandbox-pa.googleapis.com
-- Tu dong giai reCAPTCHA v2
-- Proxy toan bo Google Flow API ve local agent qua WebSocket
-- Live Dashboard: request log, progress, trang thai ket noi
-
-### 2. Python Agent (gent/)
-- **FastAPI** REST API tren cong 8100
-- **SQLite** (aiosqlite) luu projects, videos, scenes, characters, requests
-- **Queue worker**: xu ly toi da 5 requests dong thoi, cooldown 10s
-- **SDK domain model**: Project, Video, Scene, Character (queue + direct mode)
-- **Post-processing**: ffmpeg trim/merge, mix nhac nen
-
-### 3. Auto Factory (actory/)
-
-Pipeline tu dong 5 giai doan:
-
-| Stage | File | Mo ta |
-|-------|------|-------|
-| 1 | stage_1_script.py | AI sinh kich ban tu y tuong (Gemini) |
-| 2 | stage_2_images.py | Sinh reference images + scene images |
-| 3 | stage_3_videos.py | Render video AI (8s/scene) |
-| 4 | stage_4_concat.py | ffmpeg concat + mix BGM |
-| 5 | stage_5_upload.py | Upload YouTube tu dong |
-
-### 4. Web Dashboard (lowkit-web/)
-
-Next.js 15 app - giao dien dieu khien pipeline:
-
-| Trang | Route | Chuc nang |
-|-------|-------|-----------|
-| Tram 1 | / | Nhap y tuong, dat ten du an, gui kich ban |
-| Tram 2 | /tram-2 | Duyet va chinh sua kich ban AI sinh ra |
-| Tram 2.5 | /tram-2-5 | Duyet anh reference truoc khi render |
-| Tram 3 | /tram-3 | Theo doi render anh scene |
-| Diep Vien | /diep-vien | Quan ly nhan vat/entities |
-| Tram 4 | /tram-4 | Xem ket qua video hoan chinh |
-| Tram 5 | /tram-5 | Upload YouTube |
-| AI Phan Tich | /ai-phan-tich | Phan tich chat luong video bang AI |
-| Cau Hinh | /cau-hinh | Cai dat he thong |
+`
++-----------------------------+         +------------------------------+
+|        Python Agent         |<--WS--->|      Chrome Extension        |
+|      FastAPI + SQLite       |  :9222  |      MV3 Service Worker      |
+|                             |         |                              |
+|  REST API          :8100    |         |  Capture token  ya29.*       |
+|  Queue Worker   (5 conc.)   |         |  Solve reCAPTCHA v2          |
+|  SQLite DB                  |         |  Proxy Google Flow API       |
+|  Post-process   (ffmpeg)    |         |  Live Dashboard UI           |
++-------------+---------------+         +------------------------------+
+              |
+              v
++-----------------------------+         +------------------------------+
+|    Auto Factory Pipeline    |<-HTTP-->|      Web Dashboard           |
+|                             |  :3000  |      Next.js 15              |
+|  Stage 1  Script (Gemini)   |         |                              |
+|  Stage 2  Images            |         |  Station 1  Input Idea       |
+|  Stage 3  Videos            |         |  Station 2  Review Script    |
+|  Stage 4  Concat + BGM      |         |  Station 3  Render Monitor   |
+|  Stage 5  YouTube Upload    |         |  Station 4  Final Output     |
++-----------------------------+         |  Station 5  YouTube Upload   |
+                                        +------------------------------+
+`
 
 ---
 
-## Cai dat
+## Components
 
-### Yeu cau
-- Python 3.10+
-- Node.js 18+ (cho web dashboard)
-- Google Chrome
-- ffmpeg
+### Python Agent (gent/)
 
-### Buoc 1: Clone va cai ffmpeg
+Core backend that manages the entire pipeline.
+
+| Module | Description |
+|--------|-------------|
+| gent/main.py | FastAPI app + WebSocket server |
+| gent/worker/ | Queue processor (max 5 concurrent, 10s cooldown) |
+| gent/sdk/ | Domain SDK: Project, Video, Scene, Character |
+| gent/api/ | REST routes for all resources |
+| gent/services/ | FlowClient bridge, headers, post-processing |
+| gent/db/ | SQLite schema + async CRUD (aiosqlite) |
+
+### Chrome Extension (extension/)
+
+Browser bridge between the agent and Google Flow.
+
+| File | Description |
+|------|-------------|
+| ackground.js | WebSocket server + token capture (ya29.*) |
+| content.js | reCAPTCHA v2 auto-solver |
+| popup.html/js | Live dashboard: request log, progress, status |
+
+### Auto Factory (actory/)
+
+5-stage automated production pipeline.
+
+| Stage | File | What It Does |
+|-------|------|--------------|
+| 1 | stage_1_script.py | Generate full video script using Gemini AI |
+| 2 | stage_2_images.py | Generate reference images + scene images |
+| 3 | stage_3_videos.py | Render AI videos (8s per scene) |
+| 4 | stage_4_concat.py | ffmpeg concat + background music mix |
+| 5 | stage_5_upload.py | Automated YouTube upload with scheduling |
+
+### Web Dashboard (lowkit-web/)
+
+Next.js 15 control panel organized as pipeline stations.
+
+| Route | Station | Function |
+|-------|---------|----------|
+| / | Station 1 | Submit story idea, name project |
+| /tram-2 | Station 2 | Review and edit AI-generated script |
+| /tram-2-5 | Station 2.5 | Approve reference images |
+| /tram-3 | Station 3 | Monitor scene image rendering |
+| /diep-vien | Agents | Manage characters and entities |
+| /tram-4 | Station 4 | Preview final video output |
+| /tram-5 | Station 5 | YouTube upload and publish |
+| /ai-phan-tich | AI Analysis | AI-powered video quality analysis |
+| /cau-hinh | Config | System settings |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | 3.10+ | Required |
+| Node.js | 18+ | Web dashboard only |
+| Google Chrome | Latest | Required |
+| ffmpeg | Any | See Step 1 |
+
+### Step 1 — Install ffmpeg
+
+`ash
+# Auto-detect and install (recommended)
+python install_ffmpeg.py
+
+# Windows
+winget install Gyan.FFmpeg       # built-in package manager
+choco install ffmpeg             # Chocolatey
+scoop install ffmpeg             # Scoop
+
+# macOS
+brew install ffmpeg
+
+# Linux (Debian/Ubuntu)
+sudo apt-get install -y ffmpeg
+
+# Verify
+ffmpeg -version
+`
+
+### Step 2 — Clone and Install Dependencies
 
 `ash
 git clone https://github.com/Duong-Phuoc-Hung/Flowkit-main.git
 cd Flowkit-main
-
-# Auto-install ffmpeg (khuyen nghi)
-python install_ffmpeg.py
-
-# Hoac thu cong:
-winget install Gyan.FFmpeg    # Windows
-brew install ffmpeg           # macOS
-sudo apt-get install -y ffmpeg # Linux
-`
-
-### Buoc 2: Cai Python dependencies
-
-`ash
 pip install -r requirements.txt
-# Hoac tren Linux/macOS:
+
+# Linux / macOS / WSL: one-command setup
 ./setup.sh
 `
 
-### Buoc 3: Cau hinh moi truong
+### Step 3 — Configure Environment
 
 `ash
 cp .env.example .env
+# Edit .env with your API keys
 `
 
-| Bien | Mo ta |
-|------|-------|
-| GEMINI_API_KEY | Google Gemini API key (sinh kich ban) |
-| ANTHROPIC_API_KEY | Claude API key (tuy chon) |
-| API_PORT | Cong REST API (mac dinh: 8100) |
-| API_COOLDOWN | Giay nghi giua API calls (mac dinh: 10) |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| GEMINI_API_KEY | — | Google Gemini API key (script generation) |
+| ANTHROPIC_API_KEY | — | Claude API key (optional) |
+| API_PORT | 8100 | REST API port |
+| API_COOLDOWN | 10 | Seconds between API calls |
+| MAX_RETRIES | 5 | Max retries per failed request |
 
-### Buoc 4: Cai Chrome Extension
+### Step 4 — Load Chrome Extension
 
-1. Mo chrome://extensions
-2. Bat **Developer mode**
-3. Chon **Load unpacked** -> chon thu muc extension/
-4. Mo [labs.google/fx/tools/flow](https://labs.google/fx/tools/flow) va dang nhap
+1. Open chrome://extensions
+2. Enable **Developer mode** (top-right toggle)
+3. Click **Load unpacked** and select the extension/ folder
+4. Open [labs.google/fx/tools/flow](https://labs.google/fx/tools/flow) and sign in
 
-### Buoc 5: Khoi dong Agent
+### Step 5 — Start the Agent
 
 `ash
 python -m agent.main
 `
 
-Kiem tra ket noi:
+Verify the connection:
 
 `ash
 curl http://127.0.0.1:8100/health
 # {"status": "ok", "extension_connected": true}
 `
 
-### Buoc 6: Chay Web Dashboard (tuy chon)
+### Step 6 — Start Web Dashboard *(optional)*
 
 `ash
 cd flowkit-web
 npm install
 npm run dev
-# Mo http://localhost:3000
+# Open http://localhost:3000
 `
 
 ---
 
-## Chay nhanh tren Windows
+## Windows Quick Launch
 
-| File | Chuc nang |
-|------|-----------|
-| KHOI_DONG_APP.bat | Khoi dong agent + web dashboard |
-| CHAY_TU_DONG.bat | Chay auto factory pipeline |
-| VONG_LAP_TIEN_HOA.bat | Vong lap tu dong lien tuc |
-| KIEM_LOI_HE_THONG.bat | Kiem tra loi he thong |
-| TAO_ICON_RA_MAN_HINH.bat | Tao shortcut desktop |
+Pre-built .bat launchers included:
+
+| File | Action |
+|------|--------|
+| KHOI_DONG_APP.bat | Start agent + web dashboard |
+| CHAY_TU_DONG.bat | Run full auto-factory pipeline |
+| VONG_LAP_TIEN_HOA.bat | Continuous loop mode |
+| KIEM_LOI_HE_THONG.bat | System diagnostics |
+| TAO_ICON_RA_MAN_HINH.bat | Create desktop shortcut |
 
 ---
 
@@ -183,88 +222,93 @@ docker-compose up -d
 
 ---
 
-## Pipeline AI Skills
+## AI Skills
 
-35+ workflow recipes trong skills/ cho Claude Code, Gemini CLI, Codex CLI:
+35+ reusable workflow recipes in skills/ — compatible with Claude Code, Gemini CLI, and Codex CLI.
 
-### Pipeline co ban
+### Core Pipeline
 
-| Skill | Mo ta |
-|-------|-------|
-| /fk:create-project | Tao project + entities + video + scenes |
-| /fk:gen-refs | Sinh reference images cho tat ca entities |
-| /fk:gen-images | Sinh scene images |
-| /fk:gen-videos | Render video AI |
-| /fk:concat | Ghep video + mix nhac |
-| /fk:status | Dashboard trang thai project |
-| /fk:pipeline | Orchestrator toan pipeline thong minh |
+| Skill | Description |
+|-------|-------------|
+| /fk:create-project | Interactive: create project, entities, video, scenes |
+| /fk:gen-refs | Generate reference images for all entities |
+| /fk:gen-images | Generate scene images (with reference inputs) |
+| /fk:gen-videos | Render AI videos (8s each) |
+| /fk:concat | Download, normalize, and concat all scene videos |
+| /fk:status | Full project dashboard + next recommended action |
+| /fk:pipeline | Smart full-pipeline orchestrator |
 
-### Video nang cao
+### Advanced Video
 
-| Skill | Mo ta |
-|-------|-------|
-| /fk:gen-chain-videos | Video chaining (start+end frame transitions) |
-| /fk:insert-scene | Chen scene moi (multi-angle, cutaway) |
-| /fk:creative-mix | Phan tich + de xuat ky thuat toi uu |
-| /fk:camera-guide | Huong dan goc may, chuyen dong, anh sang |
+| Skill | Description |
+|-------|-------------|
+| /fk:gen-chain-videos | Start+end frame chaining for smooth transitions |
+| /fk:insert-scene | Add multi-angle shots, cutaways, or close-ups |
+| /fk:creative-mix | Analyze story + suggest optimal techniques |
+| /fk:camera-guide | Cinematic camera, movement, and lighting guide |
 
-### TTS va Thuyet minh
+### TTS and Narration
 
-| Skill | Mo ta |
-|-------|-------|
-| /fk:gen-tts-template | Tao voice template |
-| /fk:gen-narrator | Sinh text thuyet minh + TTS |
-| /fk:gen-text-overlays | Tao text overlay tu narrator |
-| /fk:concat-fit-narrator | Cat video fit theo TTS roi ghep |
-| /fk:gen-music | Sinh nhac nen qua Suno |
+| Skill | Description |
+|-------|-------------|
+| /fk:gen-tts-template | Create voice anchor template |
+| /fk:gen-narrator | Generate narrator text + TTS for all scenes |
+| /fk:gen-text-overlays | Generate text overlays from narrator content |
+| /fk:concat-fit-narrator | Trim videos to TTS duration, then concat |
+| /fk:gen-music | Generate background music via Suno |
 
-### YouTube
+### YouTube Publishing
 
-| Skill | Mo ta |
-|-------|-------|
-| /fk:youtube-seo | Sinh metadata SEO (title, description, tags) |
-| /fk:brand-logo | Them logo/watermark kenh |
-| /fk:thumbnail | Tao 4 thumbnail variants |
-| /fk:youtube-upload | Upload tu dong voi lich dang |
+| Skill | Description |
+|-------|-------------|
+| /fk:youtube-seo | SEO-optimized title, description, and tags |
+| /fk:brand-logo | Apply channel watermark and branding |
+| /fk:thumbnail | Generate 4 YouTube-optimized thumbnail variants |
+| /fk:youtube-upload | Upload with scheduling + rule validation |
 
-### Tien ich
+### Utilities
 
-| Skill | Mo ta |
-|-------|-------|
-| /fk:monitor | Theo doi toan bo pipeline |
-| /fk:doctor | Chan doan va sua loi |
-| /fk:fix-uuids | Sua media_id sai (CAMS... -> UUID) |
-| /fk:refresh-urls | Lam moi signed URLs het han |
-| /fk:research | Kiem chung su kien truoc khi viet kich ban |
-| /fk:review-video | Review chat luong video bang AI Vision |
-| /fk:review-board | Web app xem nhanh toan bo scenes |
+| Skill | Description |
+|-------|-------------|
+| /fk:monitor | Full pipeline live monitor |
+| /fk:doctor | Diagnose and fix errors across all layers |
+| /fk:fix-uuids | Repair CAMS... media IDs to proper UUID format |
+| /fk:refresh-urls | Refresh expired GCS signed URLs |
+| /fk:research | Fact-check events before scripting |
+| /fk:review-video | AI Vision quality review of generated videos |
+| /fk:review-board | Visual scene review web app |
+| /fk:switch-project | Switch active project context |
 
 ---
 
 ## Batch API
 
-Gui nhieu requests cung luc (server tu throttle - max 5 dong thoi, cooldown 10s):
+Submit multiple requests in one call. Server auto-throttles (max 5 concurrent, 10s cooldown):
 
 `ash
 curl -X POST http://127.0.0.1:8100/api/requests/batch \
   -H "Content-Type: application/json" \
-  -d '{"requests": [
-    {"type": "GENERATE_IMAGE", "scene_id": "...", "project_id": "...", "video_id": "...", "orientation": "VERTICAL"}
-  ]}'
+  -d '{
+    "requests": [
+      {"type": "GENERATE_IMAGE", "scene_id": "<SID>", "project_id": "<PID>", "video_id": "<VID>", "orientation": "VERTICAL"},
+      {"type": "GENERATE_IMAGE", "scene_id": "<SID>", "project_id": "<PID>", "video_id": "<VID>", "orientation": "VERTICAL"}
+    ]
+  }'
 `
 
-Poll trang thai:
+Poll aggregate status:
 
 `ash
-curl "http://127.0.0.1:8100/api/requests/batch-status?video_id=VID&type=GENERATE_IMAGE"
-# {"total": 20, "pending": 10, "completed": 5, "done": false}
+curl "http://127.0.0.1:8100/api/requests/batch-status?video_id=<VID>&type=GENERATE_IMAGE"
+# {"total": 20, "pending": 5, "processing": 5, "completed": 10, "failed": 0, "done": false}
+# When "done": true -> all requests finished (completed or failed)
 `
 
 ---
 
 ## API Reference
 
-### CRUD Endpoints
+### Resources
 
 | Resource | Create | List | Get | Update | Delete |
 |----------|--------|------|-----|--------|--------|
@@ -273,128 +317,144 @@ curl "http://127.0.0.1:8100/api/requests/batch-status?video_id=VID&type=GENERATE
 | Video | POST /api/videos | GET /api/videos?project_id= | GET /api/videos/{id} | PATCH /api/videos/{id} | DELETE /api/videos/{id} |
 | Scene | POST /api/scenes | GET /api/scenes?video_id= | GET /api/scenes/{id} | PATCH /api/scenes/{id} | DELETE /api/scenes/{id} |
 
-### Endpoints dac biet
+### Special Endpoints
 
-| Endpoint | Mo ta |
-|----------|-------|
-| GET /health | Trang thai server + extension |
-| GET /api/flow/credits | Credits + tier nguoi dung |
-| GET /api/materials | Danh sach materials (style anh) |
-| POST /api/requests/batch | Gui nhieu requests cung luc |
-| GET /api/requests/batch-status | Poll trang thai batch |
+| Endpoint | Description |
+|----------|-------------|
+| GET /health | Server health + extension connection status |
+| GET /api/flow/credits | Remaining credits + account tier |
+| GET /api/materials | Available image material/style options |
+| POST /api/requests/batch | Submit multiple requests at once |
+| GET /api/requests/batch-status | Poll batch completion status |
 
-### Loai Request
+### Request Types
 
-| Type | Mo ta |
-|------|-------|
-| GENERATE_IMAGE | Sinh anh scene (bo qua neu da xong) |
-| REGENERATE_IMAGE | Sinh lai anh scene |
-| GENERATE_VIDEO | Render video tu anh |
-| GENERATE_VIDEO_REFS | Render video tu reference images |
-| UPSCALE_VIDEO | Upscale 4K (TIER_TWO only) |
-| GENERATE_CHARACTER_IMAGE | Sinh reference image entity |
-| REGENERATE_CHARACTER_IMAGE | Sinh lai reference image |
+| Type | Description |
+|------|-------------|
+| GENERATE_IMAGE | Generate scene image (skips if already completed) |
+| REGENERATE_IMAGE | Force-regenerate scene image |
+| GENERATE_VIDEO | Render 8s AI video from scene image |
+| GENERATE_VIDEO_REFS | Render video directly from reference images |
+| UPSCALE_VIDEO | 4K upscale (TIER_TWO accounts only) |
+| GENERATE_CHARACTER_IMAGE | Generate entity reference image |
+| REGENERATE_CHARACTER_IMAGE | Force-regenerate entity reference image |
 
 ---
 
-## Cau truc thu muc
+## Project Structure
 
 `
 flowkit-main/
-├── agent/                    # Python FastAPI backend
-│   ├── main.py               # FastAPI app + WebSocket server
-│   ├── config.py             # Cau hinh (loads models.json)
-│   ├── models.json           # Video/image model mappings
-│   ├── materials.py          # Material/style system
-│   ├── db/                   # SQLite schema + CRUD
-│   ├── models/               # Pydantic models (API layer)
-│   ├── api/                  # REST routes
-│   ├── sdk/                  # Domain model SDK
-│   │   ├── models/           # Project, Video, Scene, Character
-│   │   └── services/         # OperationService, result_handler
-│   ├── services/             # flow_client, headers, post_process
-│   └── worker/               # Queue processor
-│
-├── factory/                  # Auto pipeline (5 stages)
-│   ├── stage_1_script.py     # AI script generation (Gemini)
-│   ├── stage_2_images.py     # Image generation
-│   ├── stage_3_videos.py     # Video rendering
-│   ├── stage_4_concat.py     # ffmpeg concat + BGM
-│   └── stage_5_upload.py     # YouTube upload
-│
-├── flowkit-web/              # Next.js 15 web dashboard
-│   └── src/app/              # Tram 1-5, ai-phan-tich, cau-hinh
-│
-├── extension/                # Chrome MV3 extension
-│   ├── manifest.json
-│   ├── background.js         # WebSocket bridge + token capture
-│   ├── content.js            # reCAPTCHA solver
-│   └── popup.html/js         # Live dashboard UI
-│
-├── skills/                   # 35+ AI agent workflow recipes
-├── scripts/                  # Helper scripts
-├── tools/                    # Utility tools
-├── tests/                    # E2E tests
-│
-├── auto_factory.py           # Main factory orchestrator
-├── install_ffmpeg.py         # Auto ffmpeg installer
-├── setup.py                  # Project setup script
-├── setup.sh                  # Unix setup script
-├── requirements.txt
-├── docker-compose.yml
-├── Dockerfile
-├── .env.example
-├── KHOI_DONG_APP.bat
-├── CHAY_TU_DONG.bat
-├── VONG_LAP_TIEN_HOA.bat
-└── KIEM_LOI_HE_THONG.bat
+|
++-- agent/                          # Python FastAPI backend
+|   +-- main.py                     # FastAPI app + WebSocket server
+|   +-- config.py                   # Configuration (loads models.json)
+|   +-- models.json                 # Video & image model key mappings
+|   +-- materials.py                # Image material/style system
+|   +-- db/
+|   |   +-- schema.py               # SQLite schema definitions
+|   |   -- crud.py                 # Async CRUD operations
+|   +-- models/                     # Pydantic request/response models
+|   +-- api/                        # REST route handlers
+|   |   +-- projects.py
+|   |   +-- videos.py
+|   |   +-- scenes.py
+|   |   +-- characters.py
+|   |   +-- requests.py
+|   |   -- flow.py
+|   +-- sdk/                        # Domain model SDK
+|   |   +-- models/                 # Project, Video, Scene, Character
+|   |   -- services/               # OperationService, result_handler
+|   +-- services/
+|   |   +-- flow_client.py          # WebSocket bridge to extension
+|   |   +-- headers.py              # Randomized browser headers
+|   |   -- post_process.py         # ffmpeg trim/merge/music
+|   -- worker/
+|       -- processor.py            # Async queue processor
+|
++-- factory/                        # Auto-production pipeline
+|   +-- stage_1_script.py           # AI script generation (Gemini)
+|   +-- stage_2_images.py           # Reference + scene image generation
+|   +-- stage_3_videos.py           # AI video rendering
+|   +-- stage_4_concat.py           # ffmpeg concat + BGM mixing
+|   -- stage_5_upload.py           # YouTube upload automation
+|
++-- flowkit-web/                    # Next.js 15 web dashboard
+|   -- src/app/                    # Stations 1-5, AI analysis, config
+|
++-- extension/                      # Chrome MV3 extension
+|   +-- manifest.json
+|   +-- background.js               # WebSocket bridge + token capture
+|   +-- content.js                  # reCAPTCHA auto-solver
+|   -- popup.html / popup.js       # Live dashboard UI
+|
++-- skills/                         # 35+ AI agent workflow recipes
++-- scripts/                        # Helper scripts
++-- tools/                          # Utility tools
++-- tests/                          # E2E test suite
+|
++-- auto_factory.py                 # Main factory orchestrator
++-- install_ffmpeg.py               # Cross-platform ffmpeg installer
++-- setup.py                        # Project setup script
++-- setup.sh                        # Unix one-command setup
++-- requirements.txt
++-- docker-compose.yml
++-- Dockerfile
++-- .env.example
+|
++-- KHOI_DONG_APP.bat               # [Windows] Launch app
++-- CHAY_TU_DONG.bat                # [Windows] Run auto pipeline
++-- VONG_LAP_TIEN_HOA.bat           # [Windows] Continuous loop
+-- KIEM_LOI_HE_THONG.bat           # [Windows] System diagnostics
 `
 
 ---
 
-## Cau hinh
+## Configuration
 
-| Bien | Mac dinh | Mo ta |
-|------|---------|-------|
-| API_HOST | 127.0.0.1 | Dia chi bind REST API |
-| API_PORT | 8100 | Cong REST API |
-| WS_PORT | 9222 | Cong WebSocket |
-| POLL_INTERVAL | 5 | Chu ky worker poll (giay) |
-| MAX_RETRIES | 5 | So lan retry toi da |
-| VIDEO_POLL_TIMEOUT | 420 | Timeout video generation (giay) |
-| API_COOLDOWN | 10 | Nghi giua cac API call (giay) |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| API_HOST | 127.0.0.1 | REST API bind address |
+| API_PORT | 8100 | REST API port |
+| WS_PORT | 9222 | WebSocket server port |
+| POLL_INTERVAL | 5 | Worker poll cycle in seconds |
+| MAX_RETRIES | 5 | Maximum retries per request |
+| VIDEO_POLL_TIMEOUT | 420 | Video generation timeout (seconds) |
+| API_COOLDOWN | 10 | Cooldown between API calls (seconds) |
 
 ---
 
-## Xu ly loi pho bien
+## Troubleshooting
 
-| Trieu chung | Giai phap |
-|-------------|-----------|
-| Extension hien "Agent disconnected" | Chay python -m agent.main |
-| Extension hien "No token" | Mo labs.google/fx/tools/flow va dang nhap |
-| CAPTCHA_FAILED: NO_FLOW_TAB | Mo tab Google Flow |
-| 403 MODEL_ACCESS_DENIED | Ha model trong models.json |
-| media_id bat dau bang CAMS... | Chay /fk:fix-uuids |
-| Upscale "permission denied" | Can tai khoan PAYGATE_TIER_TWO |
-| YouTube invalidTags | Tags vuot 500 ky tu - giam bot |
-| ffmpeg not found | Chay python install_ffmpeg.py |
+| Symptom | Solution |
+|---------|----------|
+| Extension shows "Agent disconnected" | Run python -m agent.main |
+| Extension shows "No token" | Open labs.google/fx/tools/flow and sign in |
+| CAPTCHA_FAILED: NO_FLOW_TAB | Open a Google Flow tab |
+| HTTP 403 MODEL_ACCESS_DENIED | Downgrade model in models.json |
+| media_id starts with CAMS... | Run /fk:fix-uuids |
+| Scene images visually inconsistent | Ensure all entity refs have UUID media_id |
+| Upscale returns "permission denied" | Requires PAYGATE_TIER_TWO account |
+| YouTube upload invalidTags | Tags exceed 500-char limit, reduce count |
+| fmpeg: command not found | Run python install_ffmpeg.py |
+| Request stuck in PROCESSING | Restart Chrome extension WebSocket |
 
 ---
 
 ## License
 
-MIT
+[MIT](LICENSE)
 
 ---
 
-## Cong dong va Ho tro
+## Community
 
-<p align="center">
-  <a href="https://www.facebook.com/groups/flowkit.flowboard.community">
-    <img src="https://img.shields.io/badge/Join_the_Community-FlowKit_Flowboard-1877F2?style=for-the-badge&logo=facebook" alt="Facebook Group" />
-  </a>
-</p>
+<div align="center">
 
-Cong dong chung cho **FlowKit** va **Flowboard** - chia se video, hoi dap, bao bug, yeu cau tinh nang.
+[![Join on Facebook](https://img.shields.io/badge/Community-FlowKit_%26_Flowboard_on_Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/groups/flowkit.flowboard.community)
 
 **[facebook.com/groups/flowkit.flowboard.community](https://www.facebook.com/groups/flowkit.flowboard.community)**
+
+Share generated videos · Ask for help · Request features · Report bugs
+
+</div>
