@@ -1,11 +1,22 @@
 """Configuration constants."""
 import json
 import os
+import time
 from pathlib import Path
+
+# Load .env file if present (no-op if not found)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent / ".env", override=False)
+except ImportError:
+    pass  # python-dotenv not installed; rely on system env vars
+
+APP_START_TIME = time.monotonic()
 
 # ─── Paths ───────────────────────────────────────────────────
 BASE_DIR = Path(os.environ.get("FLOW_AGENT_DIR", Path(__file__).parent.parent))
 DB_PATH = BASE_DIR / "flow_agent.db"
+
 
 # ─── API Server ──────────────────────────────────────────────
 API_HOST = os.environ.get("API_HOST", "127.0.0.1")
@@ -17,7 +28,13 @@ WS_PORT = int(os.environ.get("WS_PORT", "9222"))
 
 # ─── Google Flow API ────────────────────────────────────────
 GOOGLE_FLOW_API = "https://aisandbox-pa.googleapis.com"
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "AIzaSyBtrm0o5ab1c-Ec8ZuLcGt3oJAA5VWt3pY")
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
+if not GOOGLE_API_KEY:
+    import warnings
+    warnings.warn(
+        "GOOGLE_API_KEY is not set. Set it via environment variable or .env file.",
+        RuntimeWarning, stacklevel=1
+    )
 RECAPTCHA_SITE_KEY = os.environ.get("RECAPTCHA_SITE_KEY", "6LdsFiUsAAAAAIjVDZcuLhaHiDn5nnHVXVRQGeMV")
 
 # ─── Worker ──────────────────────────────────────────────────
@@ -97,27 +114,42 @@ SUNO_POLL_TIMEOUT = int(os.environ.get("SUNO_POLL_TIMEOUT", "600"))
 
 # ─── Header Randomization Pools ─────────────────────────────
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36",
+    # Chrome 130
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    # Chrome 132
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+    # Chrome 134
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    # Chrome 136
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+    # Chrome 141 (latest)
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
 ]
 
 CHROME_VERSIONS = [
-    '"Google Chrome";v="109", "Chromium";v="109"',
-    '"Google Chrome";v="110", "Chromium";v="110"',
-    '"Google Chrome";v="111", "Chromium";v="111"',
-    '"Google Chrome";v="113", "Not-A.Brand";v="24"',
-    '"Google Chrome";v="120", "Not-A.Brand";v="24"',
+    '"Google Chrome";v="130", "Chromium";v="130", "Not?A_Brand";v="99"',
+    '"Google Chrome";v="132", "Chromium";v="132", "Not?A_Brand";v="99"',
+    '"Google Chrome";v="134", "Chromium";v="134", "Not?A_Brand";v="24"',
+    '"Google Chrome";v="136", "Chromium";v="136", "Not?A_Brand";v="8"',
     '"Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"',
 ]
 
 BROWSER_VALIDATIONS = [
     "SgDQo8mvrGRdD61Pwo8wyWVgYgs=",
+    "ZHkTqZs+Ku0kHJNIbDlIVcIVlWQ=",
+    "wfjYh8mTdmSGjJvQe2LKNV1Kx/o=",
+    "rRSFtYOiIcgGBRcGZfN3TJ7fH3k=",
+    "KHgQOLUcxHQ0tXNiXJqQsxQE9GE=",
 ]
 
 CLIENT_DATA = [
     "CKi1yQEIh7bJAQiktskBCKmdygEIvorLAQiUocsBCIagzQEYv6nKARjRp88BGKqwzwE=",
+    "CJW5yQEIpLbJAQibtskBCKqdygEIxIrLAQilocsBCI2hzQEYsqrKARjjp88BGLGwzwE=",
+    "CK21yQEIkbbJAQijrskBCKOdygEIxYrLAQibocsBCI2hzQEYvqnKARjSp88BGKywzwE=",
 ]

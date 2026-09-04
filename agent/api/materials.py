@@ -14,7 +14,6 @@ from agent.materials import (
 from agent.db.crud import (
     create_material as crud_create_material,
     delete_material as crud_delete_material,
-    list_materials as crud_list_materials,
 )
 
 logger = logging.getLogger(__name__)

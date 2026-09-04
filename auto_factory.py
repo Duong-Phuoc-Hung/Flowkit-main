@@ -4,22 +4,41 @@ import os
 import json
 import subprocess
 import shutil
-import flowkit.api_client as api
+try:
+    import flowkit.api_client as api
+except ImportError as _err:
+    print(f"[LỖI NGHIÊM TRỌNG] Không thể import flowkit.api_client: {_err}")
+    print("Hãy chắc chắn rằng thư mục 'flowkit/' tồn tại và có file 'api_client.py'.")
+    import sys; sys.exit(1)
 from datetime import datetime
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
-import traceback
-import google.generativeai as genai
-import concurrent.futures
-import sys
-import os
+import traceback  # noqa: E402
+import google.generativeai as genai  # noqa: E402
+import concurrent.futures  # noqa: E402
+import sys  # noqa: E402
+import os  # noqa: E402
+import logging  # noqa: E402
+from logging.handlers import RotatingFileHandler  # noqa: E402
+
+# Khởi tạo Hệ thống Giám sát (Observability - Logging)
+os.makedirs("logs", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        RotatingFileHandler("logs/factory.log", maxBytes=5*1024*1024, backupCount=2, encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger("AutoFactory")
 
 # Fix print unicode error on windows
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Add scripts dir to path to import batch_poll
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "scripts")))
-from batch_poll import poll_batch
+from batch_poll import poll_batch  # noqa: E402
 # CẤU HÌNH HỆ THỐNG PIPELINE V6.0 (MASTERPIECE)
 # ==========================================
 CONFIG_DIR = "./config"
@@ -77,18 +96,19 @@ API_URL = "http://127.0.0.1:8100/api"
 DEFAULT_ORIENTATION = "HORIZONTAL"
 
 def update_status(progress, phase, log_msg):
-    print(f"[{progress}%] {phase}: {log_msg}")
+    logger.info(f"[{progress}%] {phase}: {log_msg}")
     try:
         with open(STATUS_FILE, "w", encoding="utf-8") as f:
             json.dump({"progress": progress, "phase": phase, "log": log_msg}, f, ensure_ascii=False)
-    except Exception as e: print(f\'Warning: {e}\')
+    except Exception as e: logger.warning(f"Warning: {e}")
 
 def is_night_mode_active():
     try:
         with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
             if json.load(f).get("night_mode"):
                 return not (0 <= datetime.now().hour <= 6)
-    except Exception as e: print(f\'Warning: {e}\')
+    except Exception as e:
+        print(f"Warning: {e}")
     return False
 
 def check_stuck_projects():
@@ -152,7 +172,7 @@ QUY LUẬT TÒA SOẠN (BẮT BUỘC TUÂN THỦ TỪ DỮ LIỆU HỌC MÁY):
             final_json["scenes"] = new_scenes
             
             return final_json
-        except Exception as e:
+        except Exception:
             if len(API_KEYS) > 1:
                 current_key_idx = (current_key_idx + 1) % len(API_KEYS)
                 update_status(5, "Lỗi Quota", f"🔄 Đổi sang Key số {current_key_idx + 1}")
@@ -176,7 +196,8 @@ def generate_suno_music(mood):
                 dl_res = requests.post(f"{API_URL}/music/tasks/{task_id}/download").json()
                 dl = dl_res.get('downloaded', [])
                 if dl: return dl[0]['path']
-    except Exception as e: print(f\'Warning: {e}\')
+    except Exception as e:
+        print(f"Warning: {e}")
     return None
 
 def process_input_stories():
@@ -215,7 +236,8 @@ def process_render_images():
                     if c_name in cloned_chars:
                         update_status(16, "Kloning Nhân Vật", f"Đang ép khuôn mặt cho {c_name}")
                         api.patch(f"{API_URL}/characters/{c['id']}", json={"media_id": cloned_chars[c_name]})
-            except Exception as e: print(f\'Warning: {e}\')
+            except Exception as e:
+                print(f"Warning: {e}")
 
             v_id = api.post(f"{API_URL}/videos", json={"project_id": p_id, "title": slug, "display_order": 0}).json().get('id')
             created_scenes = []
@@ -268,14 +290,18 @@ def process_render_images():
             
             # XÓA VỎ RỖNG: Dọn sạch rác trên Database nếu có lỗi xảy ra
             if 'p_id' in locals() and p_id:
-                try: requests.delete(f"{API_URL}/projects/{p_id}")
-                except Exception as e: print(f\'Warning: {e}\')
+                try:
+                    requests.delete(f"{API_URL}/projects/{p_id}")
+                except Exception as e:
+                    print(f"Warning: {e}")
                 
             # CHỐNG LẶP VÔ HẠN: Di chuyển file bị lỗi ra thư mục khác
             err_dir = os.path.abspath("99_bao_loi")
             os.makedirs(err_dir, exist_ok=True)
-            try: shutil.move(path, os.path.join(err_dir, filename))
-            except Exception as e: print(f\'Warning: {e}\')
+            try:
+                shutil.move(path, os.path.join(err_dir, filename))
+            except Exception as e:
+                print(f"Warning: {e}")
 
 def process_render_video():
     if is_night_mode_active(): return
@@ -306,8 +332,10 @@ def process_render_video():
                 raise Exception("Lỗi khi dựng video động (Đã tự động cứu hộ 3 lần nhưng không thành công)")
             # LÀM MỚI URL TRƯỚC KHI RENDER (Chống lỗi 404 Expired)
             update_status(46, "Làm Mới Dữ Liệu", "Đang gia hạn các đường link tải hình ảnh/video từ Google...")
-            try: requests.post(f"{API_URL}/flow/refresh-urls/{p_id}", timeout=15)
-            except Exception as e: print(f"Lỗi refresh URL: {e}")
+            try:
+                requests.post(f"{API_URL}/flow/refresh-urls/{p_id}", timeout=15)
+            except Exception as e:
+                print(f"Lỗi refresh URL: {e}")
 
             final_scenes = requests.get(f"{API_URL}/scenes?video_id={v_id}").json()
             if isinstance(final_scenes, dict) and "detail" in final_scenes:
@@ -327,8 +355,10 @@ def process_render_video():
             # CHỐNG LẶP VÔ HẠN: Di chuyển file bị lỗi ra thư mục khác
             err_dir = os.path.abspath("99_bao_loi")
             os.makedirs(err_dir, exist_ok=True)
-            try: shutil.move(path, os.path.join(err_dir, filename))
-            except Exception as e: print(f\'Warning: {e}\')
+            try:
+                shutil.move(path, os.path.join(err_dir, filename))
+            except Exception as e:
+                print(f"Warning: {e}")
 
 def process_single_scene(args):
     i, s, total, slug, outdir, voice_clone_file = args
@@ -342,8 +372,10 @@ def process_single_scene(args):
     canonical = f"{outdir}/4k/scene_{idx3}.mp4"
     if not os.path.exists(canonical):
         try:
+            resp = requests.get(url, stream=True, timeout=30)
+            resp.raise_for_status()
             with open(canonical, 'wb') as f:
-                for chunk in requests.get(url, stream=True, timeout=30).iter_content(chunk_size=8192): f.write(chunk)
+                for chunk in resp.iter_content(chunk_size=8192): f.write(chunk)
         except Exception as e:
             if os.path.exists(canonical): os.remove(canonical) # Dọn ngay file hỏng nếu rớt mạng
             raise e
@@ -354,13 +386,14 @@ def process_single_scene(args):
     if nt and not os.path.exists(tts_abs): 
         # CƠ CHẾ TTS BACKOFF: Thử lại 3 lần nếu máy chủ từ chối
         for retry in range(3):
-            if os.path.exists(voice_clone_file):
-                subprocess.run(f'edge-tts --voice "vi-VN-NamMinhNeural" --text "{nt}" --write-media "{tts_abs}"', shell=True)
-            else:
-                subprocess.run(f'edge-tts --voice {"vi-VN-NamMinhNeural" if "Nam" in vg else "vi-VN-HoaiMyNeural"} --text "{nt}" --write-media "{tts_abs}"', shell=True)
+            voice = "vi-VN-NamMinhNeural" if ("Nam" in vg or os.path.exists(voice_clone_file)) else "vi-VN-HoaiMyNeural"
+            cmd = ["edge-tts", "--voice", voice, "--text", nt, "--write-media", tts_abs]
+            try:
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+            except Exception:
+                pass
             if os.path.exists(tts_abs): break
-            import time
-            time.sleep(5)
+            time.sleep(3)
             
     if nt: create_subtitle_file(srt_abs, nt)
         
@@ -370,27 +403,27 @@ def process_single_scene(args):
     vf = f"{vf_base},subtitles='tts/scene_{idx3}.srt':force_style='Fontname=Arial,Fontsize=22,PrimaryColour=&H0000FFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=2,Alignment=2,MarginV=40'" if nt else vf_base
 
     # Tối ưu hóa FFMPEG: Tách biến để dễ đọc & Dùng preset ultrafast tăng tốc độ Render
-    base_cmd = [
+    ff_cmd = [
         "ffmpeg", "-y", "-i", f"4k/scene_{idx3}.mp4"
     ]
     
-    if os.path.exists(tts_abs):
-        base_cmd.extend([
+    if os.path.exists(f"{outdir}/{tts_abs}") or os.path.exists(tts_abs):
+        ff_cmd.extend([
             "-i", f"tts/scene_{idx3}.wav",
             "-filter_complex", "[0:a]volume=0.3[amb];[1:a]volume=1.2[tts];[amb][tts]amix=inputs=2:duration=first[aout]",
             "-map", "0:v", "-map", "[aout]"
         ])
     else:
-        base_cmd.extend(["-map", "0:v", "-map", "0:a?"])
+        ff_cmd.extend(["-map", "0:v", "-map", "0:a?"])
         
-    base_cmd.extend([
+    ff_cmd.extend([
         "-c:v", "libx264", "-preset", "ultrafast", "-crf", "18",
         "-vf", vf, "-r", "24", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "192k", norm_file
     ])
     
     try:
-        subprocess.run(base_cmd, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        subprocess.run(ff_cmd, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
     except Exception as e:
         print(f"[LỖI FFMPEG] Cảnh {idx3}: {e}")
     if os.path.exists(f"{outdir}/{norm_file}"): return norm_file
@@ -419,7 +452,7 @@ def download_and_concat_fixed(slug, mood, scenes):
             
     final_raw = "raw_concat.mp4"
     update_status(90, "Đang Ghép Nối", "Đang nối toàn bộ video...")
-    subprocess.run(f'ffmpeg -y -f concat -safe 0 -i concat.txt -c copy "{final_raw}"', shell=True, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", "concat.txt", "-c", "copy", final_raw], cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
     # SUNO AI & WATERMARK
     suno_track = generate_suno_music(mood)
@@ -430,11 +463,11 @@ def download_and_concat_fixed(slug, mood, scenes):
     update_status(95, "Phối Âm & Đóng Dấu", "Đang đóng dấu Logo bản quyền và ghép nhạc nền...")
     
     if os.path.exists(logo_path):
-        cmd = f'ffmpeg -y -i "{final_raw}" -stream_loop -1 -i "{bgm_path}" -i "{logo_path}" -filter_complex "[2:v]scale=150:-1[logo];[0:v][logo]overlay=main_w-overlay_w-20:20[vout];[0:a]volume=1.0[orig];[1:a]volume=0.25[bgm];[orig][bgm]amix=inputs=2:duration=first[aout]" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 18 -c:a aac -b:a 192k -shortest "{final_out}"'
+        ff_mix_cmd = ["ffmpeg", "-y", "-i", final_raw, "-stream_loop", "-1", "-i", bgm_path, "-i", logo_path, "-filter_complex", "[2:v]scale=150:-1[logo];[0:v][logo]overlay=main_w-overlay_w-20:20[vout];[0:a]volume=1.0[orig];[1:a]volume=0.25[bgm];[orig][bgm]amix=inputs=2:duration=first[aout]", "-map", "[vout]", "-map", "[aout]", "-c:v", "libx264", "-preset", "fast", "-crf", "18", "-c:a", "aac", "-b:a", "192k", "-shortest", final_out]
     else:
-        cmd = f'ffmpeg -y -i "{final_raw}" -stream_loop -1 -i "{bgm_path}" -filter_complex "[0:a]volume=1.0[orig];[1:a]volume=0.25[bgm];[orig][bgm]amix=inputs=2:duration=first[aout]" -map 0:v -map "[aout]" -c:v copy -c:a aac -b:a 192k -shortest "{final_out}"'
+        ff_mix_cmd = ["ffmpeg", "-y", "-i", final_raw, "-stream_loop", "-1", "-i", bgm_path, "-filter_complex", "[0:a]volume=1.0[orig];[1:a]volume=0.25[bgm];[orig][bgm]amix=inputs=2:duration=first[aout]", "-map", "0:v", "-map", "[aout]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", final_out]
         
-    subprocess.run(cmd, shell=True, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(ff_mix_cmd, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     
     # ẢNH BÌA YOUTUBE (THUMBNAIL GENERATOR)
     update_status(98, "Thiết Kế Ảnh Bìa", "Đang dùng Gemini tạo 4 Ảnh bìa YouTube chuyên nghiệp...")
@@ -447,13 +480,13 @@ def download_and_concat_fixed(slug, mood, scenes):
         thumb_dir = os.path.join(outdir, "Thumbnails")
         os.makedirs(thumb_dir, exist_ok=True)
         base_frame = os.path.join(thumb_dir, "base_frame.jpg")
-        subprocess.run(f'ffmpeg -y -i "{final_out}" -ss 00:00:03 -vframes 1 "{base_frame}"', shell=True, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["ffmpeg", "-y", "-i", final_out, "-ss", "00:00:03", "-vframes", "1", base_frame], cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # TIKTOK 9:16 AUTO-CROP
     update_status(99, "Ép Khuôn TikTok", "Đang cắt khung hình dọc 9:16 cho nền tảng di động...")
     tiktok_out = f"{slug}_TIKTOK_9x16.mp4"
-    cmd_tiktok = f'ffmpeg -y -i "{final_out}" -vf "crop=ih*(9/16):ih,scale=1080:1920" -c:a copy "{tiktok_out}"'
-    subprocess.run(cmd_tiktok, shell=True, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    cmd_tiktok = ["ffmpeg", "-y", "-i", final_out, "-filter_complex", "[0:v]scale=1080:1920,boxblur=20:20,eq=brightness=-0.2[bg];[0:v]scale=1080:-1[fg];[bg][fg]overlay=0:(H-h)/2", "-c:a", "copy", "-c:v", "libx264", "-preset", "fast", "-crf", "22", tiktok_out]
+    subprocess.run(cmd_tiktok, cwd=outdir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # SMART GARBAGE COLLECTOR (Dọn Rác Tiết Kiệm Ổ Cứng)
     update_status(100, "Dọn Rác Thông Minh", "Đang xóa các file trung gian (4K thô, TTS, Norm) để tiết kiệm ổ cứng...")
@@ -496,8 +529,10 @@ def download_and_concat_fixed(slug, mood, scenes):
                 print(f"[BÁO ĐỘNG] Hết Quota YouTube! Đang chuyển video sang kho 7_cho_upload...")
                 wait_dir = os.path.abspath("7_cho_upload")
                 os.makedirs(wait_dir, exist_ok=True)
-                try: shutil.move(outdir, os.path.join(wait_dir, slug))
-                except Exception as e: print(f\'Warning: {e}\')
+                try:
+                    shutil.move(outdir, os.path.join(wait_dir, slug))
+                except Exception as e:
+                    print(f"Warning: {e}")
                 update_status(0, "KHO CHỜ ĐĂNG", f"Dự án {slug} đã đưa vào kho chờ vì hết Quota YouTube.")
                 return
             else:

@@ -13,7 +13,7 @@ from typing import Optional
 
 from agent.config import (
     GOOGLE_FLOW_API, GOOGLE_API_KEY, ENDPOINTS,
-    VIDEO_MODELS, UPSCALE_MODELS, IMAGE_MODELS, VIDEO_POLL_TIMEOUT,
+    VIDEO_MODELS, UPSCALE_MODELS, IMAGE_MODELS,
 )
 from agent.services.headers import random_headers
 

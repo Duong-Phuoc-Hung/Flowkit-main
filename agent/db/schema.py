@@ -161,149 +161,126 @@ CREATE INDEX IF NOT EXISTS idx_video_project ON video(project_id);
 """
 
 
+# ─── Versioned Migrations ─────────────────────────────────────
+# Each entry: (version_int, description, sql_or_callable)
+# Add NEW migrations at the end only — never modify existing entries.
+_MIGRATIONS: list[tuple[int, str, str]] = [
+    (1, "Add slug to character",
+     "ALTER TABLE character ADD COLUMN slug TEXT"),
+
+    (2, "Add voice_description to character",
+     "ALTER TABLE character ADD COLUMN voice_description TEXT DEFAULT ''"),
+
+    (3, "Add edit_prompt to request",
+     "ALTER TABLE request ADD COLUMN edit_prompt TEXT"),
+
+    (4, "Add source_media_id to request",
+     "ALTER TABLE request ADD COLUMN source_media_id TEXT"),
+
+    (5, "Add next_retry_at to request",
+     "ALTER TABLE request ADD COLUMN next_retry_at TEXT"),
+
+    (6, "Add retry_count to request",
+     "ALTER TABLE request ADD COLUMN retry_count INTEGER DEFAULT 0"),
+
+    (7, "Add source to scene",
+     "ALTER TABLE scene ADD COLUMN source TEXT NOT NULL DEFAULT 'root'"),
+
+    (8, "Add narrator_text to scene",
+     "ALTER TABLE scene ADD COLUMN narrator_text TEXT"),
+
+    (9, "Add narrator_voice to project",
+     "ALTER TABLE project ADD COLUMN narrator_voice TEXT"),
+
+    (10, "Add narrator_ref_audio to project",
+     "ALTER TABLE project ADD COLUMN narrator_ref_audio TEXT"),
+
+    (11, "Add material to project",
+     "ALTER TABLE project ADD COLUMN material TEXT DEFAULT 'realistic'"),
+
+    (12, "Add allow_music to project",
+     "ALTER TABLE project ADD COLUMN allow_music INTEGER NOT NULL DEFAULT 0"),
+
+    (13, "Add allow_voice to project",
+     "ALTER TABLE project ADD COLUMN allow_voice INTEGER NOT NULL DEFAULT 0"),
+
+    (14, "Add orientation to video",
+     "ALTER TABLE video ADD COLUMN orientation TEXT CHECK(orientation IN ('VERTICAL','HORIZONTAL'))"),
+
+    (15, "Create material table",
+     """CREATE TABLE IF NOT EXISTS material (
+         id TEXT PRIMARY KEY, name TEXT NOT NULL, style_instruction TEXT NOT NULL,
+         negative_prompt TEXT, scene_prefix TEXT,
+         lighting TEXT DEFAULT 'Studio lighting, highly detailed',
+         created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')))"""),
+
+    (16, "Add compound index on request status and type for worker queue query speedup",
+     "CREATE INDEX IF NOT EXISTS idx_request_status_type ON request(status, type)"),
+
+    (17, "Add compound index on scene video_id and display_order for fast scene sequencing",
+     "CREATE INDEX IF NOT EXISTS idx_scene_video_order ON scene(video_id, display_order)"),
+
+    (18, "Add index on video created_at for dashboard timeline queries",
+     "CREATE INDEX IF NOT EXISTS idx_video_created ON video(created_at)"),
+]
+
+
 async def init_db():
-    """Initialize database with schema and run migrations."""
+    """Initialize database with schema and run versioned migrations."""
     async with aiosqlite.connect(str(DB_PATH)) as db:
         await db.execute("PRAGMA journal_mode=WAL")
         await db.execute("PRAGMA foreign_keys=ON")
         await db.executescript(SCHEMA)
-        # Migration: add slug column to character table + backfill
-        cursor = await db.execute("PRAGMA table_info(character)")
-        columns = {row[1] for row in await cursor.fetchall()}
-        if "slug" not in columns:
-            await db.execute("ALTER TABLE character ADD COLUMN slug TEXT")
-            logger.info("Migrated: added slug column to character table")
-        # Backfill slugs for existing characters (Python-side since SQLite has no slugify)
-        cursor = await db.execute("SELECT id, name FROM character WHERE slug IS NULL OR slug = ''")
-        chars_without_slug = await cursor.fetchall()
-        if chars_without_slug:
-            from agent.utils.slugify import slugify as _slugify
-            for row in chars_without_slug:
-                _slug = _slugify(row[1])
-                await db.execute("UPDATE character SET slug=? WHERE id=?", (_slug, row[0]))
-            logger.info("Backfilled slug for %d characters", len(chars_without_slug))
-        # Migration: add voice_description if missing (added after initial schema)
-        cursor = await db.execute("PRAGMA table_info(character)")
-        columns = {row[1] for row in await cursor.fetchall()}
-        if "voice_description" not in columns:
-            await db.execute("ALTER TABLE character ADD COLUMN voice_description TEXT DEFAULT ''")
-            logger.info("Migrated: added voice_description column to character table")
-        # Migration: add edit_prompt and source_media_id to request table
-        cursor = await db.execute("PRAGMA table_info(request)")
-        req_columns = {row[1] for row in await cursor.fetchall()}
-        if "edit_prompt" not in req_columns:
-            await db.execute("ALTER TABLE request ADD COLUMN edit_prompt TEXT")
-            logger.info("Migrated: added edit_prompt column to request table")
-        if "source_media_id" not in req_columns:
-            await db.execute("ALTER TABLE request ADD COLUMN source_media_id TEXT")
-            logger.info("Migrated: added source_media_id column to request table")
-        # Migration: add queue columns to request table
-        cursor = await db.execute("PRAGMA table_info(request)")
-        request_columns = {row[1] for row in await cursor.fetchall()}
-        if "next_retry_at" not in request_columns:
-            await db.execute("ALTER TABLE request ADD COLUMN next_retry_at TEXT")
-            logger.info("Migrated: added next_retry_at column to request table")
-        if "retry_count" not in request_columns:
-            await db.execute("ALTER TABLE request ADD COLUMN retry_count INTEGER DEFAULT 0")
-            logger.info("Migrated: added retry_count column to request table")
-        # Migration: ensure request table CHECK constraint includes all request types
-        # SQLite can't alter CHECK constraints, so recreate the table
-        cursor = await db.execute("SELECT sql FROM sqlite_master WHERE name='request' AND type='table'")
+
+        # Bootstrap migration version tracking
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS schema_version (
+                version INTEGER PRIMARY KEY,
+                description TEXT,
+                applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            )
+        """)
+        cursor = await db.execute("SELECT COALESCE(MAX(version), 0) FROM schema_version")
         row = await cursor.fetchone()
-        needs_recreate = False
-        if row:
-            table_sql = row[0]
-            if 'GENERATE_IMAGES' in table_sql and 'GENERATE_IMAGE,' not in table_sql:
-                needs_recreate = True  # old GENERATE_IMAGES typo
-            if 'REGENERATE_IMAGE' not in table_sql:
-                needs_recreate = True  # missing REGENERATE/EDIT types
-        if needs_recreate:
-            await db.execute("PRAGMA foreign_keys=OFF")
-            await db.execute("ALTER TABLE request RENAME TO _request_old")
-            await db.executescript("""
-CREATE TABLE IF NOT EXISTS request (
-    id            TEXT PRIMARY KEY,
-    project_id    TEXT REFERENCES project(id) ON DELETE CASCADE,
-    video_id      TEXT REFERENCES video(id) ON DELETE CASCADE,
-    scene_id      TEXT REFERENCES scene(id) ON DELETE CASCADE,
-    character_id  TEXT REFERENCES character(id) ON DELETE CASCADE,
-    type          TEXT NOT NULL CHECK(type IN ('GENERATE_IMAGE','REGENERATE_IMAGE','EDIT_IMAGE','GENERATE_VIDEO','REGENERATE_VIDEO','GENERATE_VIDEO_REFS','UPSCALE_VIDEO','GENERATE_CHARACTER_IMAGE','REGENERATE_CHARACTER_IMAGE','EDIT_CHARACTER_IMAGE')),
-    orientation   TEXT CHECK(orientation IN ('VERTICAL','HORIZONTAL')),
-    status        TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','PROCESSING','COMPLETED','FAILED')),
-    request_id    TEXT,
-    media_id      TEXT,
-    output_url    TEXT,
-    error_message TEXT,
-    retry_count   INTEGER NOT NULL DEFAULT 0,
-    next_retry_at TEXT,
-    edit_prompt   TEXT,
-    source_media_id TEXT,
-    created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-    updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-);
-CREATE INDEX IF NOT EXISTS idx_request_status ON request(status);
-CREATE INDEX IF NOT EXISTS idx_request_scene ON request(scene_id);
-""")
-            await db.execute("INSERT OR IGNORE INTO request SELECT * FROM _request_old")
-            await db.execute("UPDATE request SET type='GENERATE_IMAGE' WHERE type='GENERATE_IMAGES'")
-            await db.execute("DROP TABLE _request_old")
-            await db.execute("PRAGMA foreign_keys=ON")
-            logger.info("Migrated: renamed GENERATE_IMAGES -> GENERATE_IMAGE in request table")
-        # Migration: add source column to scene table
-        cursor = await db.execute("PRAGMA table_info(scene)")
-        scene_columns = {row[1] for row in await cursor.fetchall()}
-        if "source" not in scene_columns:
-            await db.execute("ALTER TABLE scene ADD COLUMN source TEXT NOT NULL DEFAULT 'root'")
-            logger.info("Migrated: added source column to scene table")
-        if "narrator_text" not in scene_columns:
-            await db.execute("ALTER TABLE scene ADD COLUMN narrator_text TEXT")
-            logger.info("Migrated: added narrator_text column to scene table")
-        # Migration: add narrator fields to project table
-        cursor = await db.execute("PRAGMA table_info(project)")
-        project_columns = {row[1] for row in await cursor.fetchall()}
-        if "narrator_voice" not in project_columns:
-            await db.execute("ALTER TABLE project ADD COLUMN narrator_voice TEXT")
-            logger.info("Migrated: added narrator_voice column to project table")
-        if "narrator_ref_audio" not in project_columns:
-            await db.execute("ALTER TABLE project ADD COLUMN narrator_ref_audio TEXT")
-            logger.info("Migrated: added narrator_ref_audio column to project table")
-        if "material" not in project_columns:
-            await db.execute("ALTER TABLE project ADD COLUMN material TEXT DEFAULT 'realistic'")
-            logger.info("Migrated: added material column to project table")
-        if "allow_music" not in project_columns:
-            await db.execute("ALTER TABLE project ADD COLUMN allow_music INTEGER NOT NULL DEFAULT 0")
-            logger.info("Migrated: added allow_music column to project table")
-        if "allow_voice" not in project_columns:
-            await db.execute("ALTER TABLE project ADD COLUMN allow_voice INTEGER NOT NULL DEFAULT 0")
-            logger.info("Migrated: added allow_voice column to project table")
-        # Migration: add orientation to video table + backfill from scene data
-        cursor = await db.execute("PRAGMA table_info(video)")
-        video_columns = {row[1] for row in await cursor.fetchall()}
-        if "orientation" not in video_columns:
-            await db.execute("ALTER TABLE video ADD COLUMN orientation TEXT CHECK(orientation IN ('VERTICAL','HORIZONTAL'))")
-            # Backfill: detect orientation from completed scene fields
-            cursor = await db.execute("SELECT id FROM video")
-            video_ids = [row[0] for row in await cursor.fetchall()]
-            for vid in video_ids:
-                cursor2 = await db.execute(
-                    "SELECT horizontal_image_status, vertical_image_status FROM scene WHERE video_id = ? LIMIT 1", (vid,))
-                scene = await cursor2.fetchone()
-                if scene:
-                    if scene[0] == "COMPLETED":
-                        await db.execute("UPDATE video SET orientation = 'HORIZONTAL' WHERE id = ?", (vid,))
-                    elif scene[1] == "COMPLETED":
-                        await db.execute("UPDATE video SET orientation = 'VERTICAL' WHERE id = ?", (vid,))
-            logger.info("Migrated: added orientation column to video table with backfill")
-        # Migration: create material table if missing
-        cursor = await db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='material'")
-        if not await cursor.fetchone():
-            await db.execute("""CREATE TABLE material (
-    id TEXT PRIMARY KEY, name TEXT NOT NULL, style_instruction TEXT NOT NULL,
-    negative_prompt TEXT, scene_prefix TEXT, lighting TEXT DEFAULT 'Studio lighting, highly detailed',
-    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')))""")
-            logger.info("Migrated: created material table")
+        current_version: int = row[0] if row else 0
+
+        # Run only pending migrations
+        for version, description, sql in _MIGRATIONS:
+            if version <= current_version:
+                continue
+            try:
+                await db.execute(sql)
+                await db.execute(
+                    "INSERT INTO schema_version (version, description) VALUES (?, ?)",
+                    (version, description),
+                )
+                logger.info("Migration v%d applied: %s", version, description)
+            except Exception as exc:
+                # Column already exists (idempotent) — mark as applied
+                if "duplicate column" in str(exc).lower() or "already exists" in str(exc).lower():
+                    await db.execute(
+                        "INSERT OR IGNORE INTO schema_version (version, description) VALUES (?, ?)",
+                        (version, f"{description} [skipped: already existed]"),
+                    )
+                    logger.debug("Migration v%d skipped (already applied): %s", version, description)
+                else:
+                    logger.error("Migration v%d FAILED: %s — %s", version, description, exc)
+                    raise
+
+        # Backfill slugs for characters missing them
+        try:
+            cursor = await db.execute("SELECT id, name FROM character WHERE slug IS NULL OR slug = ''")
+            chars = await cursor.fetchall()
+            if chars:
+                from agent.utils.slugify import slugify as _slugify
+                for row in chars:
+                    await db.execute("UPDATE character SET slug=? WHERE id=?", (_slugify(row[1]), row[0]))
+                logger.info("Backfilled slug for %d characters", len(chars))
+        except Exception:
+            pass
+
         await db.commit()
-    logger.info("Database initialized at %s", DB_PATH)
+    logger.info("Database ready at %s (schema v%d)", DB_PATH, max((m[0] for m in _MIGRATIONS), default=0))
 
 
 async def get_db() -> aiosqlite.Connection:

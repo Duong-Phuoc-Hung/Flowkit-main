@@ -84,7 +84,7 @@ async def tts_generate(body: TTSGenerateRequest):
                 ref_text=body.ref_text,
                 speed=body.speed,
             )
-        except Exception as e:
+        except Exception:
             logger.exception("TTS generation failed")
             raise HTTPException(500, "TTS generation failed")
 
@@ -231,7 +231,7 @@ async def create_voice_template(body: VoiceTemplateRequest):
                 instruct=body.instruct,
                 speed=body.speed,
             )
-        except Exception as e:
+        except Exception:
             logger.exception("Voice template generation failed")
             raise HTTPException(500, "Voice template generation failed")
 

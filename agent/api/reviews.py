@@ -1,7 +1,7 @@
 """FastAPI router for video review endpoints."""
 import logging
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query
 
 from agent.models.review import VideoReview, SceneReview
 from agent.services.video_reviewer import review_video, review_scene_video

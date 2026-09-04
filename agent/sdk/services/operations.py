@@ -37,13 +37,13 @@ def _char_matches(c: dict, name_set: set) -> bool:
     name = c.get("name", "")
     return (slug and slug in name_set) or (name and name in name_set)
 
-import aiohttp
+import aiohttp  # noqa: E402
 
-from agent.db import crud
-from agent.config import VIDEO_POLL_INTERVAL, VIDEO_POLL_TIMEOUT
-from agent.utils.paths import scene_4k_path
-from agent.utils.slugify import slugify
-from agent.worker._parsing import (
+from agent.db import crud  # noqa: E402
+from agent.config import VIDEO_POLL_INTERVAL, VIDEO_POLL_TIMEOUT  # noqa: E402
+from agent.utils.paths import scene_4k_path  # noqa: E402
+from agent.utils.slugify import slugify  # noqa: E402
+from agent.worker._parsing import (  # noqa: E402
     _is_error,
     _is_uuid,
     _extract_uuid_from_url,

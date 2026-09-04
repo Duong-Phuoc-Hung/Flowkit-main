@@ -2,27 +2,32 @@ version: '3.8'
 
 services:
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: flowkit-backend
     ports:
       - "8100:8100"
-    volumes:
-      - .:/app
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8100
+      - API_HOST=0.0.0.0
+      - API_PORT=8100
+      - WS_HOST=0.0.0.0
+      - WS_PORT=9222
+    volumes:
+      - ./flow_agent.db:/app/flow_agent.db
+      - ./exports:/app/exports
+      - ./config:/app/config
     restart: unless-stopped
 
   frontend:
-    build: ./flowkit-web
+    build:
+      context: ./flowkit-web
+      dockerfile: Dockerfile
     container_name: flowkit-frontend
     ports:
       - "3000:3000"
-    volumes:
-      - ./flowkit-web:/app
-      - /app/node_modules
-      - /app/.next
     environment:
-      - NEXT_PUBLIC_API_URL=http://backend:8100
+      - NODE_ENV=production
     depends_on:
       - backend
     restart: unless-stopped

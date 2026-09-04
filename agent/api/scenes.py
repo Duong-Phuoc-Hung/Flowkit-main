@@ -93,18 +93,18 @@ async def delete(sid: str):
     scene = await _repo.get_scene(sid)
     if not scene:
         raise HTTPException(404, "Scene not found")
-        
+
     video_id = scene.video_id
     if not await _repo.delete("scene", sid):
         raise HTTPException(404, "Failed to delete scene")
-        
+
     # Re-compact display_order (0, 1, 2, ...)
     scenes = await _repo.list_scenes(video_id)
     scenes_sorted = sorted(scenes, key=lambda s: s.display_order)
     for i, s in enumerate(scenes_sorted):
         if s.display_order != i:
             await _repo.update("scene", s.id, display_order=i)
-            
+
     return {"ok": True}
 
 

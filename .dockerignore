@@ -1,0 +1,13 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+venv
+.venv
+node_modules
+.next
+exports/*
+!.gitkeep
+flow_agent.db*

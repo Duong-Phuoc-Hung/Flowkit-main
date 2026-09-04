@@ -56,12 +56,17 @@ class APIRateLimiter:
 class WorkerController:
     """Controls the background worker loop with rate limiting and graceful shutdown."""
 
+    _IDLE_STEPS = (5, 10, 15, 30)  # exponential-ish backoff levels (seconds)
+    _DICT_TTL = 600.0              # purge expired entries every 10 minutes
+
     def __init__(self):
         self._shutdown = asyncio.Event()
         self._active_ids: set[str] = set()
         self._rate_limiter = APIRateLimiter(MAX_CONCURRENT_REQUESTS, API_COOLDOWN)
         self._deferred: dict[str, float] = {}  # rid -> defer_until timestamp
         self._retry_after: dict[str, float] = {}  # rid -> retry_after timestamp
+        self._idle_ticks: int = 0              # consecutive idle loop iterations
+        self._last_dict_cleanup: float = 0.0  # monotonic time of last TTL purge
 
     @property
     def active_count(self) -> int:
@@ -128,6 +133,12 @@ class WorkerController:
                     logger.info("Worker: %d actionable, %d active, %d slots",
                                 len(pending), len(self._active_ids), slots_available)
 
+                if not pending and not self._active_ids:
+                    # Nothing to do — exponential backoff idle sleep
+                    self._idle_ticks = min(self._idle_ticks + 1, len(self._IDLE_STEPS) - 1)
+                else:
+                    self._idle_ticks = 0  # reset backoff when there's work
+
                 for req in pending:
                     if slots_available <= 0:
                         break
@@ -155,10 +166,21 @@ class WorkerController:
                 self._deferred = {k: v for k, v in self._deferred.items() if k in pending_ids}
                 self._retry_after = {k: v for k, v in self._retry_after.items() if k in pending_ids}
 
+                # TTL cleanup: purge entries that have already expired (prevent memory accumulation)
+                mono_now = time.monotonic()
+                if mono_now - self._last_dict_cleanup > self._DICT_TTL:
+                    expired_ts = time.time()
+                    self._deferred = {k: v for k, v in self._deferred.items() if v > expired_ts}
+                    self._retry_after = {k: v for k, v in self._retry_after.items() if v > expired_ts}
+                    self._last_dict_cleanup = mono_now
+                    logger.debug("Worker: TTL purge complete — deferred=%d retry=%d",
+                                 len(self._deferred), len(self._retry_after))
+
             except Exception as e:
                 logger.exception("Worker loop error: %s", e)
 
-            await asyncio.sleep(POLL_INTERVAL)
+            sleep_secs = self._IDLE_STEPS[self._idle_ticks]
+            await asyncio.sleep(sleep_secs)
 
     async def _run_one(self, req: dict):
         rid = req["id"]

@@ -12,7 +12,7 @@ Create a reusable voice template for consistent narration across all scenes.
 ### Installing OmniVoice
 
 OmniVoice is a multilingual zero-shot TTS model (600+ languages) with voice cloning.
-Source: https://github.com/tuannguyenhoangit-droid/OmniVoice
+Source: https://github.com/Duong-Phuoc-Hung/OmniVoice
 
 > **Windows users:** Run all setup commands inside **WSL** or **Git Bash** (not CMD/PowerShell). The project's `setup.sh` and all bash scripts require a Unix shell.
 

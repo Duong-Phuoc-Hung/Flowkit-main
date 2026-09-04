@@ -1,6 +1,5 @@
 """Randomized browser headers to avoid detection."""
 import random
-import time
 from agent.config import USER_AGENTS, CHROME_VERSIONS, BROWSER_VALIDATIONS, CLIENT_DATA
 
 

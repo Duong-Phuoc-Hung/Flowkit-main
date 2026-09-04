@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from agent.models.video import Video, VideoCreate, VideoUpdate
 from agent.sdk.persistence.sqlite_repository import SQLiteRepository
-from dataclasses import asdict
 
 router = APIRouter(prefix="/videos", tags=["videos"])
 

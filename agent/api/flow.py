@@ -1,7 +1,13 @@
 """Direct Flow API endpoints — for manual operations outside the queue."""
+import base64
+import json
+import mimetypes
+import os
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+
 from agent.services.flow_client import get_flow_client
 
 router = APIRouter(prefix="/flow", tags=["flow"])
@@ -191,7 +197,6 @@ async def edit_image(body: EditImageRequest):
 @router.post("/upload-image")
 async def upload_image(body: UploadImageRequest):
     """Upload a local image file to Google Flow and get a media_id."""
-    import base64, mimetypes
     client = get_flow_client()
     if not client.connected:
         raise HTTPException(503, "Extension not connected")
@@ -207,3 +212,15 @@ async def upload_image(body: UploadImageRequest):
         raise HTTPException(result.get("status", 502), result.get("error", result.get("data")))
     media_id = result.get("_mediaId")
     return {"media_id": media_id, "raw": result.get("data", result)}
+
+
+@router.get("/live-status")
+async def get_live_status():
+    status_file = "config/status.json"
+    if not os.path.exists(status_file):
+        return {"progress": 0, "phase": "Idle", "log": "Hệ thống đang nghỉ ngơi..."}
+    try:
+        with open(status_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"progress": 0, "phase": "Idle", "log": "Hệ thống đang nghỉ ngơi..."}

@@ -9,9 +9,9 @@
   <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/ffmpeg-required-007808?logo=ffmpeg&logoColor=white" alt="ffmpeg"/>
   <a href="CLAUDE.md"><img src="https://img.shields.io/badge/Docs-CLAUDE.md-8A2BE2" alt="Documentation"/></a>
-  <a href="https://github.com/tuannguyenhoangit-droid/google-flow-agent/stargazers"><img src="https://img.shields.io/github/stars/tuannguyenhoangit-droid/google-flow-agent?style=flat&logo=github" alt="GitHub stars"/></a>
-  <a href="https://github.com/tuannguyenhoangit-droid/google-flow-agent/issues"><img src="https://img.shields.io/github/issues/tuannguyenhoangit-droid/google-flow-agent?logo=github" alt="GitHub issues"/></a>
-  <a href="https://deepwiki.com/tuannguyenhoangit-droid/google-flow-agent"><img src="https://img.shields.io/badge/DeepWiki-AI%20Docs-6A3BC9" alt="DeepWiki"/></a>
+  <a href="https://github.com/Duong-Phuoc-Hung/google-flow-agent/stargazers"><img src="https://img.shields.io/github/stars/Duong-Phuoc-Hung/google-flow-agent?style=flat&logo=github" alt="GitHub stars"/></a>
+  <a href="https://github.com/Duong-Phuoc-Hung/google-flow-agent/issues"><img src="https://img.shields.io/github/issues/Duong-Phuoc-Hung/google-flow-agent?logo=github" alt="GitHub issues"/></a>
+  <a href="https://deepwiki.com/Duong-Phuoc-Hung/google-flow-agent"><img src="https://img.shields.io/badge/DeepWiki-AI%20Docs-6A3BC9" alt="DeepWiki"/></a>
 </p>
 
 # FLOW KIT
@@ -557,7 +557,7 @@ GEMINI.md                # AI agent instructions (Gemini CLI)
 
 ## TTS Narration (OmniVoice)
 
-Optional narrator voice for scenes. Uses [OmniVoice](https://github.com/tuannguyenhoangit-droid/OmniVoice) — multilingual zero-shot TTS with voice cloning (600+ languages).
+Optional narrator voice for scenes. Uses [OmniVoice](https://github.com/Duong-Phuoc-Hung/OmniVoice) — multilingual zero-shot TTS with voice cloning (600+ languages).
 
 ### Setup
 

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from agent.sdk.repository import Repository
+    from agent.sdk.repository import Repository  # noqa: F401
 
 
 @dataclass

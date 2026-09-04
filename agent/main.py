@@ -2,15 +2,19 @@
 import asyncio
 import json
 import logging
-import signal
 import platform
+import secrets as _secrets
+import signal
+import time
+import uuid
 from contextlib import asynccontextmanager
 
 import websockets
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from agent.config import API_HOST, API_PORT, WS_HOST, WS_PORT
+from agent.config import API_HOST, API_PORT, WS_HOST, WS_PORT, APP_START_TIME
 from agent.db.schema import init_db, close_db
 from agent.api.characters import router as characters_router
 from agent.api.projects import router as projects_router
@@ -73,7 +77,7 @@ async def run_ws_server():
 async def lifespan(app: FastAPI):
     # 1. Khởi tạo DB và Controller trước để có biến sử dụng
     await init_db()
-    controller = get_worker_controller() 
+    controller = get_worker_controller()
 
     # 2. Thiết lập Signal Handler (Chỉ chạy trên Linux/macOS)
     if platform.system() != "Windows":
@@ -117,16 +121,37 @@ async def lifespan(app: FastAPI):
     worker_task.cancel()
     await close_db()
     logger.info("Flow Kit stopped")
-   
 
-app = FastAPI(title="Flow Kit", version="0.2.0", lifespan=lifespan)
+
+app = FastAPI(title="Flow Kit", version="0.3.0", lifespan=lifespan)
+
+
+# ─── Middleware: Request ID Tracing ──────────────────────────
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Stamp every request with a correlation ID for log tracing."""
+
+    async def dispatch(self, request: Request, call_next):
+        req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())[:8]
+        t0 = time.perf_counter()
+        response: Response = await call_next(request)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+        response.headers["X-Request-ID"] = req_id
+        logger.info(
+            "[%s] %s %s → %d (%.1fms)",
+            req_id, request.method, request.url.path, response.status_code, elapsed_ms,
+        )
+        return response
+
+
+app.add_middleware(RequestIDMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost", 
-        "http://127.0.0.1", 
-        "http://localhost:3000", 
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8100",
         "http://127.0.0.1:8100"
@@ -149,7 +174,6 @@ app.include_router(models_router)
 app.include_router(active_project_router)
 
 
-import secrets as _secrets
 _CALLBACK_SECRET = _secrets.token_urlsafe(32)
 
 
@@ -180,11 +204,54 @@ async def ext_callback(request: Request):
 
 @app.get("/health")
 async def health():
+    """Enterprise health check — DB, worker, system stats."""
     client = get_flow_client()
+    controller = get_worker_controller()
+    uptime_secs = int(time.monotonic() - APP_START_TIME)
+
+    # DB connectivity ping
+    db_ok = False
+    try:
+        from agent.db import crud
+        await crud.list_requests(status="PENDING", limit=1)
+        db_ok = True
+    except Exception:
+        pass
+
+    # Worker queue counts
+    try:
+        from agent.db import crud as _crud
+        pending = len(await _crud.list_requests(status="PENDING"))
+        processing = len(await _crud.list_requests(status="PROCESSING"))
+    except Exception:
+        pending = processing = -1
+
+    # System resources (psutil optional)
+    sys_info: dict = {}
+    try:
+        import psutil
+        vm = psutil.virtual_memory()
+        du = psutil.disk_usage("/")
+        sys_info = {
+            "memory_used_pct": round(vm.percent, 1),
+            "disk_free_gb": round(du.free / 1024**3, 2),
+        }
+    except ImportError:
+        pass
+
     return {
-        "status": "ok",
-        "version": "0.2.0",
+        "status": "ok" if db_ok and client.connected else "degraded",
+        "version": "0.3.0",
         "extension_connected": client.connected,
+        "uptime_seconds": uptime_secs,
+        "uptime_human": f"{uptime_secs // 3600}h {(uptime_secs % 3600) // 60}m {uptime_secs % 60}s",
+        "db": {"ok": db_ok},
+        "worker": {
+            "active": controller.active_count,
+            "queued_pending": pending,
+            "queued_processing": processing,
+        },
+        "system": sys_info,
         "ws": client.ws_stats,
     }
 

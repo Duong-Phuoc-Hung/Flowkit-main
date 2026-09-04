@@ -1,6 +1,5 @@
 """Pydantic models for video review results."""
 from pydantic import BaseModel
-from typing import Optional
 
 
 class SegmentScore(BaseModel):

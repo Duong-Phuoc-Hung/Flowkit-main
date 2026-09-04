@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 from agent.sdk.models.base import DomainModel
 
 if TYPE_CHECKING:
     from agent.sdk.models.project import Project
-    from agent.sdk.models.media import GenerationResult
+    from agent.sdk.models.media import GenerationResult  # noqa: F401
 
 
 @dataclass
@@ -96,7 +96,7 @@ class Character(DomainModel):
         self, *, project_id: Optional[str] = None
     ) -> "GenerationResult":
         """Generate reference image directly (blocking). Returns GenerationResult."""
-        from agent.sdk.models.media import GenerationResult
+        from agent.sdk.models.media import GenerationResult  # noqa: F401
         from agent.sdk.services.operations import get_operations
         from agent.sdk.services.result_handler import parse_result, apply_character_result
 
@@ -121,7 +121,7 @@ class Character(DomainModel):
         source_media_id: Optional[str] = None,
     ) -> "GenerationResult":
         """Edit character reference image directly (blocking). Returns GenerationResult."""
-        from agent.sdk.models.media import GenerationResult
+        from agent.sdk.models.media import GenerationResult  # noqa: F401
         from agent.sdk.services.operations import get_operations
         from agent.sdk.services.result_handler import parse_result, apply_character_result
 
