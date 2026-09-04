@@ -138,10 +138,63 @@ This checks and installs: Python 3.10+, pip, ffmpeg, ffprobe, Chrome, creates ve
 
 > **Windows:** Use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) (`wsl --install`) or Git Bash. All bash scripts and commands assume a Unix shell.
 
+---
+
+### Installing ffmpeg
+
+FlowKit requires `ffmpeg` for video concat, trimming, and post-processing. It is **not bundled** in this repo.
+
+#### ⚡ Auto-install (recommended)
+
+```bash
+python install_ffmpeg.py
+```
+
+The script auto-detects your OS and installs ffmpeg using the best available method. Options:
+
+```bash
+python install_ffmpeg.py --check           # Check if already installed
+python install_ffmpeg.py --method winget   # Force winget (Windows)
+python install_ffmpeg.py --method choco    # Force Chocolatey (Windows)
+python install_ffmpeg.py --method scoop    # Force Scoop (Windows)
+python install_ffmpeg.py --method manual   # Download zip directly (no package manager)
+python install_ffmpeg.py --dir C:\tools    # Install to specific directory
+```
+
+#### 🪟 Windows (manual options)
+
+| Method | Command |
+|--------|---------|
+| **winget** *(built-in Win 10/11)* | `winget install Gyan.FFmpeg` |
+| **Chocolatey** | `choco install ffmpeg` |
+| **Scoop** | `scoop install ffmpeg` |
+| **Manual download** | [gyan.dev/ffmpeg/builds](https://www.gyan.dev/ffmpeg/builds/) → download `ffmpeg-release-full.zip` → extract → add to PATH |
+
+#### 🍎 macOS
+
+```bash
+brew install ffmpeg
+```
+
+#### 🐧 Linux (Debian/Ubuntu)
+
+```bash
+sudo apt-get install -y ffmpeg
+```
+
+#### Verify installation
+
+```bash
+ffmpeg -version
+ffprobe -version
+```
+
+---
+
 ### Manual setup
 
 ```bash
-# Prerequisites: Python 3.10+, ffmpeg, Chrome
+# Prerequisites: Python 3.10+, ffmpeg (see above), Chrome
 pip install -r requirements.txt
 ```
 
