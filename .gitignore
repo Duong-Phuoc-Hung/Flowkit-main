@@ -15,3 +15,9 @@ agent/active_project.json
 AGENTS.md
 GEMINI.md
 .fk-setup.json
+
+# Large binary files (exceed GitHub 100MB limit)
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe
+*.exe
