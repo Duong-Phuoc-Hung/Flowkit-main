@@ -21,3 +21,8 @@ ffmpeg.exe
 ffplay.exe
 ffprobe.exe
 *.exe
+
+# Secret / API keys — never commit these
+config/api_keys.txt
+*.key
+*.pem
